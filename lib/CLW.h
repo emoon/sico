@@ -1,6 +1,8 @@
 #ifndef _OPENCL_WRAPPER_H_
 #define _OPENCL_WRAPPER_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,12 +20,19 @@ struct OCLWKernel;
 int wclInitialize();
 
 /*
+ * List the devices in the system. This function can optionally write the text to an output buffer instead if
+ * suplied. If the parameter is NULL or the size is 0 printf will be used instead
+ */
+
+int wclListDevices(char* output, int length);
+
+/*
  * Get the number of CPU devices we have in the machine.
  * \@param count = returns back how many CPU devices there are
  * Return device(s) pointer 
  */
 
-OCLWDevice** wclGetCPUDevices(int* count);
+struct OCLWDevice** wclGetCPUDevices(int* count);
 
 /*
  * Get the number of GPU devices we have in the machine.
@@ -31,7 +40,7 @@ OCLWDevice** wclGetCPUDevices(int* count);
  * Return device(s) pointer 
  */
 
-OCLWDevice** wclGetGPUDevices(int* count);
+struct OCLWDevice** wclGetGPUDevices(int* count);
 
 /*
  * Get the number of other OpenCL devices we have in the machine.
@@ -39,7 +48,7 @@ OCLWDevice** wclGetGPUDevices(int* count);
  * Return device(s) pointer 
  */
 
-OCLWDevice** wclGetOtherDevices(int* count);
+struct OCLWDevice** wclGetOtherDevices(int* count);
 
 /*
  * Get the "best" devices in the system, It will check number of compute units 
@@ -49,19 +58,19 @@ OCLWDevice** wclGetOtherDevices(int* count);
  * Return device(s) pointer 
  */
 
-OCLWDevice* wclGetBestDevices(int* count);
+struct OCLWDevice* wclGetBestDevices(int* count);
 
 /*
  *
  */
 
-OCLWKernel* wclGetKernelFromFile(OCLWDevice* device, const char* filename);
+struct OCLWKernel* wclGetKernelFromFile(struct OCLWDevice* device, const char* filename);
 
 /*
  *
  */
 
-OCLWHandle wclAlloc(OCLDevice* device, int size);
+OCLWHandle wclAlloc(struct OCLWDevice* device, int size);
 
 /*
  *
@@ -73,7 +82,7 @@ OCLWHandle wclFree(OCLWHandle handle);
  *
  */
 
-OCLWHandle wclAllocSyncCopy(OCLDevice* device, const void* memory, int size);
+OCLWHandle wclAllocSyncCopy(struct OCLWDevice* device, const void* memory, int size);
 
 /*
  *
