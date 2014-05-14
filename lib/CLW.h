@@ -24,7 +24,7 @@ int wclInitialize();
  * suplied. If the parameter is NULL or the size is 0 printf will be used instead
  */
 
-int wclListDevices(char* output, int length);
+int wclListDevices(char* output, size_t length);
 
 /*
  * Get the number of CPU devices we have in the machine.
@@ -70,7 +70,7 @@ struct OCLWKernel* wclGetKernelFromFile(struct OCLWDevice* device, const char* f
  *
  */
 
-OCLWHandle wclAlloc(struct OCLWDevice* device, int size);
+OCLWHandle wclAlloc(struct OCLWDevice* device, size_t size);
 
 /*
  *

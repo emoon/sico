@@ -29,7 +29,7 @@ int wclInitialize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void printOrAppendString(char* output, cl_device_id dev, cl_device_info param, int id, int index, const char* fmt, int* len)
+static void printOrAppendString(char* output, cl_device_id dev, cl_device_info param, int id, int index, const char* fmt, size_t* len)
 {
 	char tempBuffer[2048];
 
@@ -64,16 +64,16 @@ static void printOrAppendString(char* output, cl_device_id dev, cl_device_info p
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void printOrAppendInt(char* output, cl_device_id dev, cl_device_info param, int id, int index, const char* fmt, int* len)
+static void printOrAppendInt(char* output, cl_device_id dev, cl_device_info param, int id, int index, const char* fmt, size_t* len)
 {
 	char tempBuffer[2048];
     size_t value;
 
-	clGetDeviceInfo(dev, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(value), &value, 0);
+	clGetDeviceInfo(dev, param, sizeof(value), &value, 0);
 
 	if (output && (*len > 0))
 	{
-		int tempLen;
+		size_t tempLen;
 
 		sprintf(tempBuffer, fmt, id, index, value);
 		tempLen = strlen(tempBuffer);
@@ -92,9 +92,9 @@ static void printOrAppendInt(char* output, cl_device_id dev, cl_device_info para
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int wclListDevices(char* output, int size)
+int wclListDevices(char* output, size_t size)
 {
-    int i, j;
+    cl_uint i, j;
     cl_uint platformCount;
     cl_platform_id* platforms;
     cl_uint deviceCount;
