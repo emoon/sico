@@ -29,7 +29,7 @@ int wclInitialize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void printOrAppendString(char* output, cl_device_id dev, cl_device_info param, int id, int index, const char* fmt, size_t* len)
+static void printOrAppendString(char* output, cl_device_id dev, cl_device_info param, uint32_t id, int index, const char* fmt, size_t* len)
 {
 	char tempBuffer[2048];
 
@@ -64,7 +64,7 @@ static void printOrAppendString(char* output, cl_device_id dev, cl_device_info p
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void printOrAppendInt(char* output, cl_device_id dev, cl_device_info param, int id, int index, const char* fmt, size_t* len)
+static void printOrAppendInt(char* output, cl_device_id dev, cl_device_info param, uint32_t id, int index, const char* fmt, size_t* len)
 {
 	char tempBuffer[2048];
     size_t value;
@@ -130,7 +130,7 @@ int wclListDevices(char* output, size_t size)
 
     free(platforms);
 
-    return size;
+    return (int)size;
 }
 
 

@@ -2,6 +2,7 @@
 #define _OPENCL_WRAPPER_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
