@@ -49,6 +49,7 @@ static int32_t s_DeviceIndex = -1;
 static char s_PlatformNameSubstr[128] = { 0 };
 static char s_DeviceNameSubstr[128] = { 0 };
 static char s_InputFilename[1024] = { 0 };
+static char s_outputFilename[1024] = { 0 };
 static char s_BuildArgs[8192] = { 0 };
 
 #define LOG if (s_Verbose) printf
@@ -106,6 +107,12 @@ static const char* parseArguments(int argc, const char* argv[])
 			else if (!strcasecmp(arg, "-device_index") && i < argc - 1)
 			{
 				s_DeviceIndex = atoi(argv[i + 1]);
+				i++;
+			}
+
+			else if (!strcasecmp(arg, "-o") && i < argc - 1)
+			{
+				strcpy(s_outputFilename, argv[i + 1]);
 				i++;
 			}
 
@@ -168,6 +175,7 @@ static void printUsage()
 	{
 		printf("\nOptions are:\n\n");
 		printf("   -noheader          Supress header\n");
+		printf("   -o          		  Output which writes a dummy file for build systems to track\n");
 		printf("   -verbose           Print logs detailing what wclc is doing behind the scenes\n");
 		printf("   -platform_index    Specify zero-based platform index tp select\n");
 		printf("   -device_index      Specify zero-based device index tp select\n");
@@ -624,9 +632,23 @@ int main(int argc, const char* argv[])
 		return 1;
 	}
 
-	return_code = loadAndCompileProgram(ocl);
+	if ((return_code = loadAndCompileProgram(ocl)) == CL_BUILD_SUCCESS)
+	{
+		FILE* f;
+
+		if (s_outputFilename[0] != 0)
+		{
+			remove(s_outputFilename);
+			f = fopen(s_outputFilename, "w");
+			if (f)
+				fclose(f);
+			else
+				printf("Unable to open %s for write\n", s_outputFilename);
+		}
+	}
+
 	destroy(&ocl);
 
-	return return_code;
+	return 0;
 }
 

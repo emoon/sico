@@ -7,6 +7,8 @@ local macosx = {
             { "-O0", "-g"; Config = "*-*-debug" },
             { "-O3", "-g"; Config = "*-*-release" },
         },
+
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)wclc$(PROGSUFFIX)",
     },
 }
 
@@ -45,6 +47,10 @@ local win64 = {
 Build {
 
     Units = "units.lua",
+
+	Passes = {
+		BuildCompiler = { Name="Build Compiler", BuildOrder = 1 },
+	},
 
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },

@@ -2,9 +2,30 @@ require "tundra.syntax.glob"
 require "tundra.path"
 require "tundra.util"
 
+-- Used to generate the moc cpp files as needed for .h that uses Q_OBJECT for QtTool(s)
+
+DefRule {
+	Name = "OpenCLCompile",
+	Command = "$(OPENCL_COMPILER) $(<) -o $(@)",
+
+	Blueprint = {
+		Source = { Required = true, Type = "string", Help = "Input filename", },
+		OutName = { Required = false, Type = "string", Help = "Output filename", },
+	},
+
+	Setup = function (env, data)
+		return {
+			InputFiles    = { data.Source },
+			OutputFiles   = { "$(OBJECTDIR)/_generated/" .. data.Source .. ".temp" },
+		}
+	end,
+}
+
+
 StaticLibrary {
 
     Name = "CLW",
+	Pass = "BuildCompiler",
 
     Env = { 
         CCOPTS = { "-Wno-format-nonliteral"; Config = "macosx-*-*" },
@@ -36,12 +57,20 @@ StaticLibrary {
 
 Program {
     Name = "show_devices",
-
-    Env = {
-        CPPPATH = { "lib" },
-    },
-
+    Env = { CPPPATH = { "lib" }, },
     Sources = { "examples/show_devices/show_devices.c" },
+    Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+    Depends = { "CLW" },
+    Frameworks = { "OpenCL" },
+}
+
+Program {
+    Name = "add_floats",
+    Env = { CPPPATH = { "lib" }, },
+    Sources = { 
+    	"examples/show_devices/show_devices.c" ,
+    	OpenCLCompile { Source = "examples/add_floats/add_floats.cl" },
+   	},
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
     Depends = { "CLW" },
     Frameworks = { "OpenCL" },
@@ -51,6 +80,8 @@ Program {
 
 Program {
     Name = "wclc",
+	Pass = "BuildCompiler",
+	Target = "$(OPENCL_COMPILER)";
 
     Env = {
         CPPPATH = { "lib" },
@@ -65,4 +96,5 @@ Program {
 --- Programs ---
 
 Default "show_devices"
+Default "add_floats"
 Default "wclc"
