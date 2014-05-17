@@ -22,8 +22,18 @@ static int s_deviceCount = 0;
 typedef struct OCLWDevice
 {
 	cl_device_id deviceId;
+	cl_device_type deviceType;
 	cl_context context;
 } OCLWDevice;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct OCLWKernel
+{
+	cl_program program;
+	cl_kernel kern;
+
+} OCLWKernel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +43,99 @@ static void* mallocZero(size_t size)
 	assert(t);
 	memset(t, 0, size);
 	return t;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const char* getErrorString(cl_int errorCode)
+{
+	switch (errorCode)
+	{
+		case CL_DEVICE_NOT_FOUND : return "CL_INVALID_PLATFORM"; 
+		case CL_DEVICE_NOT_AVAILABLE : return "CL_DEVICE_NOT_AVAILABLE"; 
+		case CL_COMPILER_NOT_AVAILABLE : return "CL_COMPILER_NOT_AVAILABLE"; 
+		case CL_MEM_OBJECT_ALLOCATION_FAILURE : return "CL_MEM_OBJECT_ALLOCATION_FAILURE"; 
+		case CL_OUT_OF_RESOURCES : return "CL_OUT_OF_RESOURCES"; 
+		case CL_OUT_OF_HOST_MEMORY : return "CL_OUT_OF_HOST_MEMORY"; 
+		case CL_PROFILING_INFO_NOT_AVAILABLE : return "CL_PROFILING_INFO_NOT_AVAILABLE"; 
+		case CL_MEM_COPY_OVERLAP : return "CL_MEM_COPY_OVERLAP"; 
+		case CL_IMAGE_FORMAT_MISMATCH : return "CL_IMAGE_FORMAT_MISMATCH"; 
+		case CL_IMAGE_FORMAT_NOT_SUPPORTED : return "CL_IMAGE_FORMAT_NOT_SUPPORTED"; 
+		case CL_BUILD_PROGRAM_FAILURE : return "CL_BUILD_PROGRAM_FAILURE"; 
+		case CL_MAP_FAILURE : return "CL_MAP_FAILURE"; 
+		case CL_MISALIGNED_SUB_BUFFER_OFFSET : return "CL_MISALIGNED_SUB_BUFFER_OFFSET"; 
+		case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST : return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST"; 
+		case CL_INVALID_VALUE : return "CL_INVALID_VALUE"; 
+		case CL_INVALID_DEVICE_TYPE : return "CL_INVALID_DEVICE_TYPE"; 
+		case CL_INVALID_PLATFORM : return "CL_INVALID_PLATFORM"; 
+		case CL_INVALID_DEVICE : return "CL_INVALID_DEVICE"; 
+		case CL_INVALID_CONTEXT : return "CL_INVALID_CONTEXT"; 
+		case CL_INVALID_QUEUE_PROPERTIES : return "CL_INVALID_QUEUE_PROPERTIES"; 
+		case CL_INVALID_COMMAND_QUEUE : return "CL_INVALID_COMMAND_QUEUE"; 
+		case CL_INVALID_HOST_PTR : return "CL_INVALID_HOST_PTR"; 
+		case CL_INVALID_MEM_OBJECT : return "CL_INVALID_MEM_OBJECT"; 
+		case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR : return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR"; 
+		case CL_INVALID_IMAGE_SIZE : return "CL_INVALID_IMAGE_SIZE"; 
+		case CL_INVALID_SAMPLER : return "CL_INVALID_SAMPLER"; 
+		case CL_INVALID_BINARY : return "CL_INVALID_BINARY"; 
+		case CL_INVALID_BUILD_OPTIONS : return "CL_INVALID_BUILD_OPTIONS"; 
+		case CL_INVALID_PROGRAM : return "CL_INVALID_PROGRAM"; 
+		case CL_INVALID_PROGRAM_EXECUTABLE : return "CL_INVALID_PROGRAM_EXECUTABLE"; 
+		case CL_INVALID_KERNEL_NAME : return "CL_INVALID_KERNEL_NAME"; 
+		case CL_INVALID_KERNEL_DEFINITION : return "CL_INVALID_KERNEL_DEFINITION"; 
+		case CL_INVALID_KERNEL : return "CL_INVALID_KERNEL"; 
+		case CL_INVALID_ARG_INDEX : return "CL_INVALID_ARG_INDEX"; 
+		case CL_INVALID_ARG_VALUE : return "CL_INVALID_ARG_VALUE"; 
+		case CL_INVALID_ARG_SIZE : return "CL_INVALID_ARG_SIZE"; 
+		case CL_INVALID_KERNEL_ARGS : return "CL_INVALID_KERNEL_ARGS"; 
+		case CL_INVALID_WORK_DIMENSION : return "CL_INVALID_WORK_DIMENSION"; 
+		case CL_INVALID_WORK_GROUP_SIZE : return "CL_INVALID_WORK_GROUP_SIZE"; 
+		case CL_INVALID_WORK_ITEM_SIZE : return "CL_INVALID_WORK_ITEM_SIZE"; 
+		case CL_INVALID_GLOBAL_OFFSET : return "CL_INVALID_GLOBAL_OFFSET"; 
+		case CL_INVALID_EVENT_WAIT_LIST : return "CL_INVALID_EVENT_WAIT_LIST"; 
+		case CL_INVALID_EVENT : return "CL_INVALID_EVENT"; 
+		case CL_INVALID_OPERATION : return "CL_INVALID_OPERATION"; 
+		case CL_INVALID_GL_OBJECT : return "CL_INVALID_GL_OBJECT"; 
+		case CL_INVALID_BUFFER_SIZE : return "CL_INVALID_BUFFER_SIZE"; 
+		case CL_INVALID_MIP_LEVEL : return "CL_INVALID_MIP_LEVEL"; 
+		case CL_INVALID_GLOBAL_WORK_SIZE : return "CL_INVALID_GLOBAL_WORK_SIZE"; 
+	}
+
+	return "UNKNOWN_ERROR_CODE";
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* readFileFromDisk(const char* file, size_t* size)
+{
+	size_t fileSize;
+	void* data;
+	FILE* f = fopen(file, "rb");
+
+	if (!f)
+	{
+		printf("CLW: Unable to open file %s\n", file);
+		return 0;
+	}
+
+	fseek(f, 0, SEEK_END);
+	fileSize = (size_t)ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	// pad the size a bit so we make sure to have the data null terminated
+	data = mallocZero(fileSize + 16);
+
+	if ((fread((void*)data, 1, fileSize, f)) != fileSize)
+	{
+		free(data);
+		fclose(f);
+		printf("CLW: Unable to read the whole file %s to memory\n", file);
+
+	}
+
+	*size = fileSize;
+
+	return data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +203,21 @@ static void printOrAppendInt(char* output, cl_device_id dev, cl_device_info para
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+cl_context createSingleContext(cl_device_id deviceId)
+{
+	cl_context context;
+ 	cl_int err;
+
+	if ((context = clCreateContext(0, 1, &deviceId, NULL, NULL, &err)))
+		return context; 
+
+	printf("CLW: Unable to create context. Error %s\n", getErrorString(err));
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 OCLWDevice** wclGetAllDevices(int* count)
 {
     cl_uint i, j, deviceIter = 0;
@@ -146,6 +264,7 @@ OCLWDevice** wclGetAllDevices(int* count)
         {
 			s_devices[deviceIter] = mallocZero(sizeof(OCLWDevice));
 			s_devices[deviceIter]->deviceId = devices[j];
+			clGetDeviceInfo(devices[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &s_devices[deviceIter]->deviceType, 0);
         }
 
         free(devices);
@@ -172,7 +291,6 @@ int wclInitialize()
 	return 1;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int wclListDevices(char* output, size_t size)
@@ -183,7 +301,8 @@ int wclListDevices(char* output, size_t size)
     if (s_platformId == 0)
     	return 0;
 
-	devices = wclGetAllDevices(&count);
+	if (!(devices = wclGetAllDevices(&count)))
+		return 0;
 
 	for (i = 0; i < count; ++i)
 	{
@@ -206,16 +325,106 @@ int wclListDevices(char* output, size_t size)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct OCLWDevice* wclGetBestDevice()
+{
+	int i, count;
+	OCLWDevice** devices;
 
+	// this algorithm can be quite improved. Right now it will just pick the first GPU
+
+	if (!(devices = wclGetAllDevices(&count)))
+		return 0;
+
+	for (i = 0; i < count; ++i)
+	{
+		if (!devices[i])
+			continue;
+
+		if (devices[i]->deviceType == CL_DEVICE_TYPE_GPU)
+		{
+			if (!createSingleContext(devices[i]->deviceId))
+				return 0;
+
+			return devices[i];
+		}
+	}
+
+	// if no found at this spot we just use the first one
+
+	if (!createSingleContext(devices[0]->deviceId))
+		return 0;
+
+	return devices[0];
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-struct OCLWDevice** wclGetBestDevices(int* count)
+struct OCLWKernel* wclCompileKernelFromSourceFile(
+	struct OCLWDevice* device, 
+	const char* filename, 
+	const char* kernelName, 
+	const char* buildOpts)
 {
+	const char* data;
+	size_t fileSize;
+	cl_kernel kern;
+	cl_int error;
 
+	cl_program program;
+	OCLWKernel* kernel;
 
+	// First create a single context if we have none
+
+	if (!device->context)
+	{
+		if (!(device->context = createSingleContext(device->deviceId)))
+			return 0;
+	}
+
+	if (!(data = readFileFromDisk(filename, &fileSize)))
+		return 0;
+	
+	if (!(program = clCreateProgramWithSource(device->context, 1, &data, &fileSize, &error)))
+	{
+		free((void*)data);
+		printf("ERROR: clCreateProgramWithSource failed, error: %s\n", getErrorString(error));
+		return 0;
+	}
+	
+	free((void*)data);
+
+	if ((error = clBuildProgram(program, 1, 0, buildOpts, 0, 0)) != CL_SUCCESS)
+	{
+		char* errorBuffer;
+		size_t size;
+
+		clGetProgramBuildInfo(program, device->deviceId, CL_PROGRAM_BUILD_LOG, 0, 0, &size);
+		errorBuffer = malloc(size + 1);
+		clGetProgramBuildInfo(program, device->deviceId, CL_PROGRAM_BUILD_LOG, size, errorBuffer, 0);
+		errorBuffer[size] = 0;
+
+		// TODO: Support writing the error log to a buffer
+
+		printf("CLW: unable to build %s\n\n%s\n", filename, errorBuffer);
+
+		free(errorBuffer);
+		
+		return 0;
+	}
+
+    if (!(kern = clCreateKernel(program, kernelName, &error)))
+    {
+    	printf("CLW: Unable to create kernel for %s (%s), error %s\n", filename, kernelName, getErrorString(error)); 
+    	return 0;
+    }
+
+	kernel = mallocZero(sizeof(OCLWKernel));
+	kernel->program = program;
+	kernel->kern = kern;
+
+	return kernel;
 }
-*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

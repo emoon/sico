@@ -84,7 +84,7 @@ struct OCLWDevice** wclGetBestDevices(int* count);
  *
  */
 
-struct OCLWKernel* wclGetKernelFromFile(struct OCLWDevice* device, const char* filename);
+struct OCLWKernel* wclCompileKernelFromFile(struct OCLWDevice* device, const char* filename);
 
 /*
  *
