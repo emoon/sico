@@ -12,6 +12,17 @@ struct OCLWDevice;
 typedef uintptr_t OCLWHandle;
 struct OCLWKernel;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef enum OpenCLWState
+{
+    OpenCLW_Ok,
+    OpenCLW_NoDevice,
+    OpenCLW_UnableToFindKernel,
+    OpenCLW_UnableToExecuteKernel,
+    OpenCLW_CompileFailed,
+} OpenCLWState;
+
 /*
  * Needs to be called before any other function is called. This function won't do that much except make sure that there
  * are some OpenCL capable device on your machine.
@@ -26,6 +37,14 @@ int wclInitialize();
  */
 
 int wclListDevices(char* output, size_t length);
+
+/*
+ * Get the number of CPU devices we have in the machine.
+ * \@param count = returns back how many CPU devices there are
+ * Return device(s) pointer 
+ */
+
+struct OCLWDevice** wclGetAllDevices(int* count);
 
 /*
  * Get the number of CPU devices we have in the machine.
@@ -59,7 +78,7 @@ struct OCLWDevice** wclGetOtherDevices(int* count);
  * Return device(s) pointer 
  */
 
-struct OCLWDevice* wclGetBestDevices(int* count);
+struct OCLWDevice** wclGetBestDevices(int* count);
 
 /*
  *
@@ -96,6 +115,13 @@ OCLWHandle wclAsycCopyToDevice(OCLWHandle handle, const void* memory, int size);
  */
 
 OCLWHandle wclAsycCopyFromDevice(void* dest, const OCLWHandle handle, int size);
+
+/*
+ *
+ *
+ */
+
+OpenCLWState wclRunKernel1DArray(void* dest, void* source, const char* filename, int elementCount, int sizeInBytes);
 
 #ifdef __cplusplus
 }
