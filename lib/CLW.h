@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __APPLE__ 
+#include <OpenCL/opencl.h>
+#else
+#include <CL/opencl.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,11 +23,30 @@ struct OCLWKernel;
 typedef enum OpenCLWState
 {
     OpenCLW_Ok,
+    OpenCLW_GeneralFail,
     OpenCLW_NoDevice,
-    OpenCLW_UnableToFindKernel,
+    OpenCLW_UnableToBuildKernel,
     OpenCLW_UnableToExecuteKernel,
-    OpenCLW_CompileFailed,
 } OpenCLWState;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define OCLW_MEM_READ_WRITE CL_MEM_READ_WRITE
+#define OCLW_MEM_WRITE_ONLY CL_MEM_WRITE_ONLY
+#define OCLW_MEM_READ_ONLY CL_MEM_READ_ONLY
+#define OCLW_PARAMETER (1 << 20)	// not a real memory type
+
+#define oclw_sizeof_array(array) (int)(sizeof(array) / sizeof(array[0]))
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct OCLWParam
+{
+	void* data;
+	unsigned int type;   // memory type (use defines above) 
+	size_t size;
+	void* privData; // private data
+} OCLWParam;
 
 /*
  * Needs to be called before any other function is called. This function won't do that much except make sure that there
@@ -121,7 +146,7 @@ OCLWHandle wclAsycCopyFromDevice(void* dest, const OCLWHandle handle, int size);
  *
  */
 
-OpenCLWState wclRunKernel1DArray(void* dest, void* source, const char* filename, int elementCount, int sizeInBytes);
+OpenCLWState wclRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes);
 
 #ifdef __cplusplus
 }

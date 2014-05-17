@@ -68,7 +68,7 @@ Program {
     Name = "add_floats",
     Env = { CPPPATH = { "lib" }, },
     Sources = { 
-    	"examples/show_devices/show_devices.c" ,
+    	"examples/add_floats/add_floats.c" ,
     	OpenCLCompile { Source = "examples/add_floats/add_floats.cl" },
    	},
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
