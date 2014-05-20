@@ -23,10 +23,12 @@ local win32 = {
     
         GENERATE_PDB = "1",
         CCOPTS = {
-            "/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4996", "/wd4389",
+            "/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4996", "/wd4389", "/wd4706", "/wd4204",
             { "/Od"; Config = "*-*-debug" },
             { "/O2"; Config = "*-*-release" },
         },
+
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)wclc$(PROGSUFFIX)",
     },
 }
 
@@ -41,6 +43,8 @@ local win64 = {
             { "/Od"; Config = "*-*-debug" },
             { "/O2"; Config = "*-*-release" },
         },
+
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)wclc$(PROGSUFFIX)",
     },
 }
 
