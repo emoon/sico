@@ -1,23 +1,19 @@
 #include <CLW.h>
 #include <stdio.h>
+#include <malloc.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(void)
 {
     size_t i;
-    const size_t floatCount = 64 * 1024;
-    const size_t byteSize = floatCount * sizeof(float);
+	float inputData[] = { 1.0f, 2.0f, 3.0f, 4.0f };
+	const size_t inputCount = oclw_sizeof_array(inputData);
+	float dataRes[oclw_sizeof_array(inputData)];
 
-    float* data = malloc(byteSize);
-    float* dataRes = malloc(byteSize);
+    wclRunKernel1DArray(dataRes, inputData, "examples/add_floats/add_floats.cl", inputCount, sizeof(inputData));
 
-    for (i = 0; i < floatCount; ++i)
-        data[i] = (float)i;
-
-    wclRunKernel1DArray(dataRes, data, "examples/add_floats/add_floats.cl", floatCount, byteSize);
-
-    for (i = 0; i < 10; ++i)
+    for (i = 0; i < inputCount; ++i)
         printf("data %f\n", dataRes[i]);
 
     return 0;
