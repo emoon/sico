@@ -27,13 +27,16 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <stdbool.h>
 
 #ifdef __APPLE__ 
+#include <stdbool.h>
 #include <OpenCL/opencl.h>
 #else
 #include <malloc.h>
 #include <CL/opencl.h>
+typedef unsigned char bool;
+#define true 1
+#define false 0
 #endif
 
 // stdout configuration
