@@ -1,7 +1,7 @@
 SICO
 =============
 
-SICO SI(mple) CO(mpute) is a library built on top of OpenCL in order to make it easier to use OpenCL. OpenCL in general has quite a bit of setup before one actually can start using it. The goal of SICO is to make this a bit easier and acceasseble (mainly from C/C++ to begin with) if you for example want to run an OpenCL kernel accress a 1D array you would write
+SICO SI(mple) CO(mpute) is a library built on top of OpenCL in order to make it easier to use OpenCL. OpenCL in general has quite a bit of setup before one actually can start using it. The goal of SICO is to make this a bit easier and accessible (mainly from C/C++ to begin with) if you for example want to run an OpenCL kernel accress a 1D array you would write
 
 ```
 scRunKernel1DArray(...)
