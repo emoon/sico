@@ -1,5 +1,5 @@
 
-#include "CLW.h"
+#include "sico.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,26 +9,26 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static cl_platform_id s_platformId = 0;
-static struct OCLWDevice** s_devices = 0;
+static struct SICODevice** s_devices = 0;
 static int s_deviceCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct OCLWDevice
+typedef struct SICODevice
 {
 	cl_device_id deviceId;
 	cl_device_type deviceType;
 	cl_context context;
-} OCLWDevice;
+} SICODevice;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct OCLWKernel
+typedef struct SICOKernel
 {
 	cl_program program;
 	cl_kernel kern;
 
-} OCLWKernel;
+} SICOKernel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -213,7 +213,7 @@ cl_context createSingleContext(cl_device_id deviceId)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OCLWDevice** wclGetAllDevices(int* count)
+SICODevice** scGetAllDevices(int* count)
 {
     cl_uint i, j, deviceIter = 0;
     cl_uint platformCount;
@@ -245,7 +245,7 @@ OCLWDevice** wclGetAllDevices(int* count)
 
 	// Allocate space for the devices and then set them up
 
-	s_devices = malloc((sizeof(OCLWDevice*) * (size_t)totalDeviceCount));
+	s_devices = malloc((sizeof(SICODevice*) * (size_t)totalDeviceCount));
 
 	// setup the device ids
 
@@ -257,7 +257,7 @@ OCLWDevice** wclGetAllDevices(int* count)
 
         for (j = 0; j < deviceCount; ++j, ++deviceIter) 
         {
-			s_devices[deviceIter] = mallocZero(sizeof(OCLWDevice));
+			s_devices[deviceIter] = mallocZero(sizeof(SICODevice));
 			s_devices[deviceIter]->deviceId = devices[j];
 			clGetDeviceInfo(devices[j], CL_DEVICE_TYPE, sizeof(cl_device_type), &s_devices[deviceIter]->deviceType, 0);
         }
@@ -275,7 +275,7 @@ OCLWDevice** wclGetAllDevices(int* count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_queue queue, OCLWParam* params, uint32_t paramCount)
+static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_queue queue, SICOParam* params, uint32_t paramCount)
 {
 	uint8_t needsUpload[256] = { 0 };
 	cl_int error;
@@ -288,9 +288,9 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
 
 	for (i = 0; i < paramCount; ++i)
 	{
-		OCLWParam* param = &params[i];
+		SICOParam* param = &params[i];
 
-		if (param->type == OCLW_PARAMETER)
+		if (param->type == SICO_PARAMETER)
 		{
 			param->privData = 0;
 			continue;
@@ -301,7 +301,7 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
 			if (!(mem = clCreateBuffer(device->context, param->type | CL_MEM_USE_HOST_PTR, param->size, param->data, &error)))
 			{
 				printf("CLW: CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
-				return OpenCLW_GeneralFail;
+				return SCIO_GeneralFail;
 			}
 		}
 		else
@@ -309,7 +309,7 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
 			if (!(mem = clCreateBuffer(device->context, CL_MEM_READ_WRITE, param->size, NULL, &error)))
 			{
 				printf("CLW: GPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
-				return OpenCLW_GeneralFail;
+				return SCIO_GeneralFail;
 			}
 
 			needsUpload[i] = 1;
@@ -322,7 +322,7 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
 
 	for (i = 0; i < paramCount; ++i)
 	{
-		OCLWParam* param = &params[i]; 
+		SICOParam* param = &params[i]; 
 
 		if (needsUpload[i] == 0)
 			continue;
@@ -330,7 +330,7 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
     	if ((error = clEnqueueWriteBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, param->data, 0, NULL, NULL)) != CL_SUCCESS)
     	{
 			printf("CLW: clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
-			return OpenCLW_GeneralFail;
+			return SCIO_GeneralFail;
     	}
 	}
 
@@ -338,9 +338,9 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
 
  	for (i = 0; i < paramCount; ++i)
 	{
-		OCLWParam* param = &params[i]; 
+		SICOParam* param = &params[i]; 
 
-		if (param->type == OCLW_PARAMETER)
+		if (param->type == SICO_PARAMETER)
 			error = clSetKernelArg(kernel->kern, (cl_uint)i, param->size, param->data);
 		else
 			error = clSetKernelArg(kernel->kern, (cl_uint)i, sizeof(cl_mem), (cl_mem)&param->privData);
@@ -348,16 +348,16 @@ static int setupParameters(OCLWDevice* device, OCLWKernel* kernel, cl_command_qu
 		if (error != CL_SUCCESS)
 		{
 			printf("Unable to clSetKernelArg (param %d), error %s\n", i, getErrorString(error));
-			return OpenCLW_GeneralFail;
+			return SCIO_GeneralFail;
 		}
 	}
 
-	return OpenCLW_Ok;
+	return SCIO_Ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int writeMemoryParams(OCLWDevice* device, cl_command_queue queue, OCLWParam* params, uint32_t paramCount)
+static int writeMemoryParams(SICODevice* device, cl_command_queue queue, SICOParam* params, uint32_t paramCount)
 {
 	uint32_t i;
 	cl_int error;
@@ -365,28 +365,28 @@ static int writeMemoryParams(OCLWDevice* device, cl_command_queue queue, OCLWPar
 	// If the device is CPU we have nothing that needs to be copied back
 
 	if (device->deviceType == CL_DEVICE_TYPE_CPU)
-		return OpenCLW_Ok;
+		return SCIO_Ok;
 
 	for (i = 0; i < paramCount; ++i)
 	{
-		OCLWParam* param = &params[i]; 
+		SICOParam* param = &params[i]; 
 
-		if (param->type == OCLW_MEM_READ_ONLY || param->type == OCLW_PARAMETER)
+		if (param->type == SICO_MEM_READ_ONLY || param->type == SICO_PARAMETER)
 			continue;
 
     	if ((error = clEnqueueReadBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, param->data, 0, NULL, NULL)) != CL_SUCCESS)
     	{
 			printf("CLW: clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
-			return OpenCLW_GeneralFail;
+			return SCIO_GeneralFail;
     	}
 	}
 
-	return OpenCLW_Ok;
+	return SCIO_Ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int wclInitialize()
+int scInitialize()
 {
 	if (clGetPlatformIDs(1, &s_platformId , 0) != CL_SUCCESS)
 	{
@@ -399,15 +399,15 @@ int wclInitialize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int wclListDevices(char* output, size_t size)
+int scListDevices(char* output, size_t size)
 {
 	int i, count;
-	OCLWDevice** devices;
+	SICODevice** devices;
 
     if (s_platformId == 0)
     	return 0;
 
-	if (!(devices = wclGetAllDevices(&count)))
+	if (!(devices = scGetAllDevices(&count)))
 		return 0;
 
 	for (i = 0; i < count; ++i)
@@ -431,14 +431,14 @@ int wclListDevices(char* output, size_t size)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct OCLWDevice* wclGetBestDevice()
+struct SICODevice* scGetBestDevice()
 {
 	int i, count;
-	OCLWDevice** devices;
+	SICODevice** devices;
 
 	// this algorithm can be quite improved. Right now it will just pick the first GPU
 
-	if (!(devices = wclGetAllDevices(&count)))
+	if (!(devices = scGetAllDevices(&count)))
 	{
 		printf("CLW: Unable to find any OpenCL devices in the system\n");
 		return 0;
@@ -468,8 +468,8 @@ struct OCLWDevice* wclGetBestDevice()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct OCLWKernel* wclCompileKernelFromSourceFile(
-	struct OCLWDevice* device, 
+struct SICOKernel* scCompileKernelFromSourceFile(
+	struct SICODevice* device, 
 	const char* filename, 
 	const char* kernelName, 
 	const char* buildOpts)
@@ -480,7 +480,7 @@ struct OCLWKernel* wclCompileKernelFromSourceFile(
 	cl_int error;
 
 	cl_program program;
-	OCLWKernel* kernel;
+	SICOKernel* kernel;
 
 	(void)buildOpts;
 
@@ -528,7 +528,7 @@ struct OCLWKernel* wclCompileKernelFromSourceFile(
     	return 0;
     }
 
-	kernel = mallocZero(sizeof(OCLWKernel));
+	kernel = mallocZero(sizeof(SICOKernel));
 	kernel->program = program;
 	kernel->kern = kern;
 
@@ -537,52 +537,52 @@ struct OCLWKernel* wclCompileKernelFromSourceFile(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OpenCLWState wclRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes)
+SCIOState scRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes)
 {
-	OCLWDevice* device;
-	OCLWKernel* kernel;
+	SICODevice* device;
+	SICOKernel* kernel;
 	uint32_t i;
 	cl_int error;
 	cl_command_queue queue;
 
-	OCLWParam params[] =
+	SICOParam params[] =
 	{
-		{ dest, OCLW_MEM_READ_WRITE, sizeInBytes, 0 },
-		{ source, OCLW_MEM_READ_WRITE, sizeInBytes, 0 },
+		{ dest, SICO_MEM_READ_WRITE, sizeInBytes, 0 },
+		{ source, SICO_MEM_READ_WRITE, sizeInBytes, 0 },
 	};
 
-	wclInitialize();
+	scInitialize();
 
-	if (!(device = wclGetBestDevice()))
+	if (!(device = scGetBestDevice()))
 	{
     	printf("CLW: Unable to find OpenCL device\n");
-		return OpenCLW_NoDevice;
+		return SCIO_NoDevice;
 	}
 
-	if (!(kernel = wclCompileKernelFromSourceFile(device, filename, "kern", "")))
-		return OpenCLW_UnableToBuildKernel;
+	if (!(kernel = scCompileKernelFromSourceFile(device, filename, "kern", "")))
+		return SCIO_UnableToBuildKernel;
 
 	// TODO: Abstract the queue
 
     if (!(queue = clCreateCommandQueue(device->context, device->deviceId, 0, &error)))
     {
     	printf("CLW: Unable to create command queue, error: %s\n", getErrorString(error));
-    	return OpenCLW_GeneralFail;
+    	return SCIO_GeneralFail;
     }
 
-	if ((setupParameters(device, kernel, queue, params, oclw_sizeof_array(params))) != OpenCLW_Ok)
-    	return OpenCLW_GeneralFail;
+	if ((setupParameters(device, kernel, queue, params, oclw_sizeof_array(params))) != SCIO_Ok)
+    	return SCIO_GeneralFail;
 
     if ((error = clEnqueueNDRangeKernel(queue, kernel->kern, 1, 0, &elementCount, 0, 0, 0, 0)) != CL_SUCCESS)
 	{
 		printf("CLW: clEnqueueNDRangeKernel failed, error %s\n", getErrorString(error));
-    	return OpenCLW_GeneralFail;
+    	return SCIO_GeneralFail;
 	}
 
     clFinish(queue);
 
-	if ((writeMemoryParams(device, queue, params, oclw_sizeof_array(params))) != OpenCLW_Ok)
-    	return OpenCLW_GeneralFail;
+	if ((writeMemoryParams(device, queue, params, oclw_sizeof_array(params))) != SCIO_Ok)
+    	return SCIO_GeneralFail;
 
     clFinish(queue);
 
@@ -594,5 +594,5 @@ OpenCLWState wclRunKernel1DArray(void* dest, void* source, const char* filename,
 
     clReleaseCommandQueue(queue);
 
-   	return OpenCLW_Ok;
+   	return SCIO_Ok;
 }

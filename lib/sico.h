@@ -14,39 +14,39 @@
 extern "C" {
 #endif
 
-struct OCLWDevice;
-typedef uintptr_t OCLWHandle;
-struct OCLWKernel;
+struct SICODevice;
+typedef uintptr_t SICOHandle;
+struct SICOKernel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum OpenCLWState
+typedef enum SCIOState
 {
-    OpenCLW_Ok,
-    OpenCLW_GeneralFail,
-    OpenCLW_NoDevice,
-    OpenCLW_UnableToBuildKernel,
-    OpenCLW_UnableToExecuteKernel,
-} OpenCLWState;
+    SCIO_Ok,
+    SCIO_GeneralFail,
+    SCIO_NoDevice,
+    SCIO_UnableToBuildKernel,
+    SCIO_UnableToExecuteKernel,
+} SCIOState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define OCLW_MEM_READ_WRITE CL_MEM_READ_WRITE
-#define OCLW_MEM_WRITE_ONLY CL_MEM_WRITE_ONLY
-#define OCLW_MEM_READ_ONLY CL_MEM_READ_ONLY
-#define OCLW_PARAMETER (1 << 20)	// not a real memory type
+#define SICO_MEM_READ_WRITE CL_MEM_READ_WRITE
+#define SICO_MEM_WRITE_ONLY CL_MEM_WRITE_ONLY
+#define SICO_MEM_READ_ONLY CL_MEM_READ_ONLY
+#define SICO_PARAMETER (1 << 20)	// not a real memory type
 
 #define oclw_sizeof_array(array) (int)(sizeof(array) / sizeof(array[0]))
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct OCLWParam
+typedef struct SICOParam
 {
 	void* data;
 	unsigned int type;   // memory type (use defines above) 
 	size_t size;
 	void* privData; // private data
-} OCLWParam;
+} SICOParam;
 
 /*
  * Needs to be called before any other function is called. This function won't do that much except make sure that there
@@ -54,14 +54,14 @@ typedef struct OCLWParam
  * Return non-zero on success otherwise 0
  */
 
-int wclInitialize();
+int scInitialize();
 
 /*
  * List the devices in the system. This function can optionally write the text to an output buffer instead if
  * suplied. If the parameter is NULL or the size is 0 printf will be used instead
  */
 
-int wclListDevices(char* output, size_t length);
+int scListDevices(char* output, size_t length);
 
 /*
  * Get the number of CPU devices we have in the machine.
@@ -69,7 +69,7 @@ int wclListDevices(char* output, size_t length);
  * Return device(s) pointer 
  */
 
-struct OCLWDevice** wclGetAllDevices(int* count);
+struct SICODevice** scGetAllDevices(int* count);
 
 /*
  * Get the number of CPU devices we have in the machine.
@@ -77,7 +77,7 @@ struct OCLWDevice** wclGetAllDevices(int* count);
  * Return device(s) pointer 
  */
 
-struct OCLWDevice** wclGetCPUDevices(int* count);
+struct SICODevice** scGetCPUDevices(int* count);
 
 /*
  * Get the number of GPU devices we have in the machine.
@@ -85,7 +85,7 @@ struct OCLWDevice** wclGetCPUDevices(int* count);
  * Return device(s) pointer 
  */
 
-struct OCLWDevice** wclGetGPUDevices(int* count);
+struct SICODevice** scGetGPUDevices(int* count);
 
 /*
  * Get the number of other OpenCL devices we have in the machine.
@@ -93,7 +93,7 @@ struct OCLWDevice** wclGetGPUDevices(int* count);
  * Return device(s) pointer 
  */
 
-struct OCLWDevice** wclGetOtherDevices(int* count);
+struct SICODevice** scGetOtherDevices(int* count);
 
 /*
  * Get the "best" devices in the system, It will check number of compute units 
@@ -103,50 +103,50 @@ struct OCLWDevice** wclGetOtherDevices(int* count);
  * Return device(s) pointer 
  */
 
-struct OCLWDevice** wclGetBestDevices(int* count);
+struct SICODevice** scGetBestDevices(int* count);
 
 /*
  *
  */
 
-struct OCLWKernel* wclCompileKernelFromFile(struct OCLWDevice* device, const char* filename);
+struct SICOKernel* scCompileKernelFromFile(struct SICODevice* device, const char* filename);
 
 /*
  *
  */
 
-OCLWHandle wclAlloc(struct OCLWDevice* device, size_t size);
+SICOHandle scAlloc(struct SICODevice* device, size_t size);
 
 /*
  *
  */
 
-OCLWHandle wclFree(OCLWHandle handle);
+SICOHandle scFree(SICOHandle handle);
 
 /*
  *
  */
 
-OCLWHandle wclAllocSyncCopy(struct OCLWDevice* device, const void* memory, int size);
+SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size);
 
 /*
  *
  */
 
-OCLWHandle wclAsycCopyToDevice(OCLWHandle handle, const void* memory, int size);
+SICOHandle scAsycCopyToDevice(SICOHandle handle, const void* memory, int size);
 
 /*
  *
  */
 
-OCLWHandle wclAsycCopyFromDevice(void* dest, const OCLWHandle handle, int size);
+SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
 
 /*
  *
  *
  */
 
-OpenCLWState wclRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes);
+SCIOState scRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes);
 
 #ifdef __cplusplus
 }

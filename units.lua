@@ -24,14 +24,14 @@ DefRule {
 
 StaticLibrary {
 
-    Name = "CLW",
+    Name = "sico",
 	Pass = "BuildCompiler",
 
     Env = { 
         CCOPTS = { "-Wno-format-nonliteral"; Config = "macosx-*-*" },
     },
 
-    Sources = { "lib/CLW.c" },
+    Sources = { "lib/sico.c" },
 
     Frameworks = { "OpenCL" },
 }
@@ -60,7 +60,7 @@ Program {
     Env = { CPPPATH = { "lib" }, },
     Sources = { "examples/show_devices/show_devices.c" },
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
-    Depends = { "CLW" },
+    Depends = { "sico" },
     Frameworks = { "OpenCL" },
 }
 
@@ -72,14 +72,14 @@ Program {
     	OpenCLCompile { Source = "examples/add_floats/add_floats.cl" },
    	},
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
-    Depends = { "CLW" },
+    Depends = { "sico" },
     Frameworks = { "OpenCL" },
 }
 
 -------------- Programs ------------------------
 
 Program {
-    Name = "wclc",
+    Name = "sicoc",
 	Pass = "BuildCompiler",
 	Target = "$(OPENCL_COMPILER)";
 
@@ -89,7 +89,7 @@ Program {
 
     Sources = { "compiler/wclc.c" },
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
-    Depends = { "CLW" },
+    Depends = { "sico" },
     Frameworks = { "OpenCL" },
 }
 
@@ -97,4 +97,4 @@ Program {
 
 Default "show_devices"
 Default "add_floats"
-Default "wclc"
+Default "sicoc"

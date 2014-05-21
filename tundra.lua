@@ -8,7 +8,7 @@ local macosx = {
             { "-O3", "-g"; Config = "*-*-release" },
         },
 
-        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)wclc$(PROGSUFFIX)",
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)sicoc$(PROGSUFFIX)",
     },
 }
 
@@ -28,7 +28,7 @@ local win32 = {
             { "/O2"; Config = "*-*-release" },
         },
 
-        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)wclc$(PROGSUFFIX)",
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)sicoc$(PROGSUFFIX)",
     },
 }
 
@@ -44,7 +44,7 @@ local win64 = {
             { "/O2"; Config = "*-*-release" },
         },
 
-        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)wclc$(PROGSUFFIX)",
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)sicoc$(PROGSUFFIX)",
     },
 }
 

@@ -1,4 +1,4 @@
-#include <CLW.h>
+#include <sico.h>
 #include <stdio.h>
 #include <malloc.h>
 
@@ -11,7 +11,7 @@ int main(void)
 	const size_t inputCount = oclw_sizeof_array(inputData);
 	float dataRes[oclw_sizeof_array(inputData)];
 
-    wclRunKernel1DArray(dataRes, inputData, "examples/add_floats/add_floats.cl", inputCount, sizeof(inputData));
+    scRunKernel1DArray(dataRes, inputData, "examples/add_floats/add_floats.cl", inputCount, sizeof(inputData));
 
     for (i = 0; i < inputCount; ++i)
         printf("data %f\n", dataRes[i]);

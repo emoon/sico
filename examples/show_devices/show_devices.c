@@ -1,4 +1,4 @@
-#include <CLW.h>
+#include <sico.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -10,8 +10,8 @@ int main(int argc, const char* argv[])
 	(void)argc;
 	(void)argv;
 
-	if (!wclInitialize())
+	if (!scInitialize())
 		return -1;
 
-	wclListDevices(0, 0);
+	scListDevices(0, 0);
 }
