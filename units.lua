@@ -87,7 +87,7 @@ Program {
         CPPPATH = { "lib" },
     },
 
-    Sources = { "compiler/wclc.c" },
+    Sources = { "compiler/sicoc.c" },
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
     Depends = { "sico" },
     Frameworks = { "OpenCL" },

@@ -1,5 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This code is mostly taken from https://github.com/Celtoys/oclpc but somewhat adopted to fit the wrapper:
+//
+// TODO: Fully rewrite using the SICO code instead as this is just duplication
+//
 // * Changed the coding style a bit
 // * Fixes to work on Mac
 // * Warning fixes
