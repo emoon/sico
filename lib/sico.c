@@ -537,7 +537,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes)
+SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes)
 {
 	SICODevice* device;
 	SICOKernel* kernel;
@@ -548,7 +548,8 @@ SCIOState scRunKernel1DArray(void* dest, void* source, const char* filename, siz
 	SICOParam params[] =
 	{
 		{ dest, SICO_MEM_READ_WRITE, sizeInBytes, 0 },
-		{ source, SICO_MEM_READ_WRITE, sizeInBytes, 0 },
+		{ sourceA, SICO_MEM_READ_ONLY, sizeInBytes, 0 },
+		{ sourceB, SICO_MEM_READ_ONLY, sizeInBytes, 0 },
 	};
 
 	scInitialize();

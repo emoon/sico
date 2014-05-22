@@ -146,7 +146,7 @@ SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
  *
  */
 
-SCIOState scRunKernel1DArray(void* dest, void* source, const char* filename, size_t elementCount, size_t sizeInBytes);
+SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
 
 #ifdef __cplusplus
 }
