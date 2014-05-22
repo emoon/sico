@@ -1,4 +1,4 @@
-// Basic example of adding floats from one input and write to another output
+// Basic example of adding floats from two inputs and write to another output
 
 __kernel void kern(global float* output, global float* inputA, global float* inputB)
 {
