@@ -6,7 +6,7 @@ require "tundra.util"
 
 DefRule {
 	Name = "OpenCLCompile",
-	Command = "$(OPENCL_COMPILER) $(<) -o $(@)",
+	Command = "$(OPENCL_COMPILER) $(<) $(@)",
 
 	Blueprint = {
 		Source = { Required = true, Type = "string", Help = "Input filename", },
