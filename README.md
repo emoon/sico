@@ -21,3 +21,8 @@ And you are done.
 
 This example of course trades some performance for simplicity but SICO can be used with more function calls and with more controls in order to improve performance.
 
+Status
+------
+
+The library is still in early development but feedback, ideas, etc are always welcome.
+
