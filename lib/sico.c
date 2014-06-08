@@ -109,7 +109,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
 
 	if (!f)
 	{
-		printf("CLW: Unable to open file %s\n", file);
+		printf("SICO: Unable to open file %s\n", file);
 		return 0;
 	}
 
@@ -124,7 +124,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
 	{
 		free(data);
 		fclose(f);
-		printf("CLW: Unable to read the whole file %s to memory\n", file);
+		printf("SICO: Unable to read the whole file %s to memory\n", file);
 
 	}
 
@@ -206,7 +206,7 @@ cl_context createSingleContext(cl_device_id deviceId)
 	if ((context = clCreateContext(0, 1, &deviceId, NULL, NULL, &err)))
 		return context; 
 
-	printf("CLW: Unable to create context. Error %s\n", getErrorString(err));
+	printf("SICO: Unable to create context. Error %s\n", getErrorString(err));
 
 	return 0;
 }
@@ -300,7 +300,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 		{
 			if (!(mem = clCreateBuffer(device->context, param->type | CL_MEM_USE_HOST_PTR, param->size, param->data, &error)))
 			{
-				printf("CLW: CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
+				printf("SICO: CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
 				return SCIO_GeneralFail;
 			}
 		}
@@ -308,7 +308,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 		{
 			if (!(mem = clCreateBuffer(device->context, CL_MEM_READ_WRITE, param->size, NULL, &error)))
 			{
-				printf("CLW: GPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
+				printf("SICO: GPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
 				return SCIO_GeneralFail;
 			}
 
@@ -329,7 +329,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 
     	if ((error = clEnqueueWriteBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, param->data, 0, NULL, NULL)) != CL_SUCCESS)
     	{
-			printf("CLW: clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
+			printf("SICO: clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
 			return SCIO_GeneralFail;
     	}
 	}
@@ -376,7 +376,7 @@ static int writeMemoryParams(SICODevice* device, cl_command_queue queue, SICOPar
 
     	if ((error = clEnqueueReadBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, param->data, 0, NULL, NULL)) != CL_SUCCESS)
     	{
-			printf("CLW: clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
+			printf("SICO: clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
 			return SCIO_GeneralFail;
     	}
 	}
@@ -395,6 +395,12 @@ int scInitialize()
 	}
 
 	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void scClose()
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -440,7 +446,7 @@ struct SICODevice* scGetBestDevice()
 
 	if (!(devices = scGetAllDevices(&count)))
 	{
-		printf("CLW: Unable to find any OpenCL devices in the system\n");
+		printf("SICO: Unable to find any OpenCL devices in the system\n");
 		return 0;
 	}
 
@@ -516,7 +522,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(
 
 		// TODO: Support writing the error log to a buffer
 
-		printf("CLW: unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
+		printf("SICO: unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
 		free(errorBuffer);
 		
 		return 0;
@@ -524,7 +530,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(
 
     if (!(kern = clCreateKernel(program, kernelName, &error)))
     {
-    	printf("CLW: Unable to create kernel for %s (%s), error %s\n", filename, kernelName, getErrorString(error)); 
+    	printf("SICO: Unable to create kernel for %s (%s), error %s\n", filename, kernelName, getErrorString(error)); 
     	return 0;
     }
 
@@ -534,6 +540,60 @@ struct SICOKernel* scCompileKernelFromSourceFile(
 
 	return kernel;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Use this code in the function above
+
+int scCompileFromFile(struct SICODevice* device, const char* filename, const char* buildOpts)
+{
+	const char* data;
+	size_t fileSize;
+	cl_int error;
+	cl_program program;
+
+	(void)buildOpts;
+
+	// First create a single context if we have none
+
+	if (!device->context)
+	{
+		if (!(device->context = createSingleContext(device->deviceId)))
+			return 0;
+	}
+
+	if (!(data = readFileFromDisk(filename, &fileSize)))
+		return 0;
+	
+	if (!(program = clCreateProgramWithSource(device->context, 1, &data, &fileSize, &error)))
+	{
+		free((void*)data);
+		printf("SICO: clCreateProgramWithSource failed, error: %s\n", getErrorString(error));
+		return 0;
+	}
+	
+	free((void*)data);
+
+	if ((error = clBuildProgram(program, 0, 0, 0, 0, 0)) != CL_SUCCESS)
+	{
+		char* errorBuffer;
+		size_t size;
+
+		clGetProgramBuildInfo(program, device->deviceId, CL_PROGRAM_BUILD_LOG, 0, 0, &size);
+		errorBuffer = malloc(size + 1);
+		clGetProgramBuildInfo(program, device->deviceId, CL_PROGRAM_BUILD_LOG, size, errorBuffer, 0);
+		errorBuffer[size] = 0;
+
+		// TODO: Support writing the error log to a buffer
+
+		printf("SICO: unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
+		free(errorBuffer);
+		
+		return 0;
+	}
+
+	return 1;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -556,7 +616,7 @@ SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const cha
 
 	if (!(device = scGetBestDevice()))
 	{
-    	printf("CLW: Unable to find OpenCL device\n");
+    	printf("SICO: Unable to find OpenCL device\n");
 		return SCIO_NoDevice;
 	}
 
@@ -567,7 +627,7 @@ SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const cha
 
     if (!(queue = clCreateCommandQueue(device->context, device->deviceId, 0, &error)))
     {
-    	printf("CLW: Unable to create command queue, error: %s\n", getErrorString(error));
+    	printf("SICO: Unable to create command queue, error: %s\n", getErrorString(error));
     	return SCIO_GeneralFail;
     }
 
@@ -576,7 +636,7 @@ SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const cha
 
     if ((error = clEnqueueNDRangeKernel(queue, kernel->kern, 1, 0, &elementCount, 0, 0, 0, 0)) != CL_SUCCESS)
 	{
-		printf("CLW: clEnqueueNDRangeKernel failed, error %s\n", getErrorString(error));
+		printf("SICO: clEnqueueNDRangeKernel failed, error %s\n", getErrorString(error));
     	return SCIO_GeneralFail;
 	}
 

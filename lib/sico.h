@@ -57,6 +57,12 @@ typedef struct SICOParam
 int scInitialize();
 
 /*
+ * Closes the devices etc 
+ */
+
+void scClose();
+
+/*
  * List the devices in the system. This function can optionally write the text to an output buffer instead if
  * suplied. If the parameter is NULL or the size is 0 printf will be used instead
  */
@@ -106,45 +112,37 @@ struct SICODevice** scGetOtherDevices(int* count);
 struct SICODevice** scGetBestDevices(int* count);
 
 /*
- *
+ * Get the "best" device in the system, It will check number of compute units 
+ * on each device and return the best one in the category
+ * Return device(s) pointer 
  */
 
-struct SICOKernel* scCompileKernelFromFile(struct SICODevice* device, const char* filename);
+struct SICODevice* scGetBestDevice();
 
 /*
  *
  */
+
+int scCompileFromFile(struct SICODevice* device, const char* filename, const char* buildOpts);
+
+/*
 
 SICOHandle scAlloc(struct SICODevice* device, size_t size);
 
-/*
- *
- */
 
 SICOHandle scFree(SICOHandle handle);
 
-/*
- *
- */
 
 SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size);
 
-/*
- *
- */
 
 SICOHandle scAsycCopyToDevice(SICOHandle handle, const void* memory, int size);
 
-/*
- *
- */
 
 SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
 
-/*
- *
- *
- */
+*/
+
 
 SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
 
