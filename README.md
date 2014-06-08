@@ -17,7 +17,7 @@ float outputData[sizeof_array(inputData)];
 scRunKernel1DArray(outputData, inputData, inputData2, "mykernel.cl", sizeof_array(inputData), sizeof(inputData);
 ```
 
-And you are done.
+And you are done. See https://github.com/emoon/sico/blob/master/examples/add_floats/add_floats.c for a full example similar to this code.
 
 This example of course trades some performance for simplicity but SICO can be used with more function calls and with more controls in order to improve performance.
 
