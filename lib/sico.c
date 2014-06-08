@@ -125,7 +125,6 @@ static void* readFileFromDisk(const char* file, size_t* size)
 		free(data);
 		fclose(f);
 		printf("SICO: Unable to read the whole file %s to memory\n", file);
-
 	}
 
 	*size = fileSize;
