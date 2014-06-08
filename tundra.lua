@@ -12,6 +12,12 @@ local macosx = {
     },
 }
 
+local unix = {
+    Env = {
+        OPENCL_COMPILER = "$(OBJECTDIR)$(SEP)sicoc$(PROGSUFFIX)",
+    },
+}
+
 local win32 = {
     Env = {
 		CPPPATH = {
@@ -60,6 +66,7 @@ Build {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
         Config { Name = "win32-msvc", DefaultOnHost = { "windows" }, Inherit = win32, Tools = { "msvc" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
+        Config { Name = "unix-gcc", DefaultOnHost = { "linux" }, Inherit = unix, Tools = { "gcc" } },
     },
 
     IdeGenerationHints = {

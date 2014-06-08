@@ -31,6 +31,10 @@ StaticLibrary {
         CCOPTS = { "-Wno-format-nonliteral"; Config = "macosx-*-*" },
     },
 
+    Propagate = {
+	Libs = { "OpenCL"; Config = "unix-*" },
+    },
+
     Sources = { "lib/sico.c" },
 
     Frameworks = { "OpenCL" },
