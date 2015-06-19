@@ -35,7 +35,7 @@ StaticLibrary {
 	Libs = { "OpenCL"; Config = "unix-*" },
     },
 
-    Sources = { "lib/sico.c" },
+    Sources = { "src/sico.c" },
 
     Frameworks = { "OpenCL" },
 }
@@ -61,7 +61,7 @@ StaticLibrary {
 
 Program {
     Name = "show_devices",
-    Env = { CPPPATH = { "lib" }, },
+    Env = { CPPPATH = { "src" }, },
     Sources = { "examples/show_devices/show_devices.c" },
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
     Depends = { "sico" },
@@ -70,7 +70,7 @@ Program {
 
 Program {
     Name = "add_floats",
-    Env = { CPPPATH = { "lib" }, },
+    Env = { CPPPATH = { "src" }, },
     Sources = { 
     	"examples/add_floats/add_floats.c" ,
     	OpenCLCompile { Source = "examples/add_floats/add_floats.cl" },
@@ -88,7 +88,7 @@ Program {
 	Target = "$(OPENCL_COMPILER)";
 
     Env = {
-        CPPPATH = { "lib" },
+        CPPPATH = { "src" },
     },
 
     Sources = { "compiler/sicoc.c" },
