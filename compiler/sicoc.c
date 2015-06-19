@@ -7,57 +7,57 @@
 
 static void printHeader()
 {
-	printf("SICOC - Si(mple) Co(mpute) Compiler\n");
+    printf("SICOC - Si(mple) Co(mpute) Compiler\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void writeOutput(const char* filename)
 {
-	FILE* f;
+    FILE* f;
 
-	if (filename[0] == 0)
-		return;
+    if (filename[0] == 0)
+        return;
 
-	remove(filename);
+    remove(filename);
 
-	f = fopen(filename, "w");
-	if (f)
-		fclose(f);
-	else
-		printf("SICOC: Unable to open %s for write\n", filename);
+    f = fopen(filename, "w");
+    if (f)
+        fclose(f);
+    else
+        printf("SICOC: Unable to open %s for write\n", filename);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, const char** argv)
 {
-	struct SICODevice* device;
+    struct SICODevice* device;
 
-	if (!scInitialize())
-	{
-		printf("Unable to init OpenCL\n");
-		return 0;
-	}
+    if (!scInitialize())
+    {
+        printf("Unable to init OpenCL\n");
+        return 0;
+    }
 
-	printHeader();
+    printHeader();
 
-	if (argc < 3)
-	{
-		printf("Usage: sicoc <input.cl> output\n");
-		return 0;
-	}
+    if (argc < 3)
+    {
+        printf("Usage: sicoc <input.cl> output\n");
+        return 0;
+    }
 
-	if (!(device = scGetBestDevice()))
-		return 0;
+    if (!(device = scGetBestDevice()))
+        return 0;
 
-	if (!scCompileFromFile(device, argv[1], 0))
-		return 0;
+    if (!scCompileFromFile(device, argv[1], 0))
+        return 0;
 
-	writeOutput(argv[2]);
+    writeOutput(argv[2]);
 
-	scClose();
+    scClose();
 
-	return 0;
+    return 0;
 }
 
