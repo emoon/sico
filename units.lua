@@ -43,16 +43,19 @@ StaticLibrary {
 
 StaticLibrary {
 
-    Name = "CuTest",
+    Name = "cmocka",
 
     Env = { 
-        CPPPATH = { "tests/CuTest" },
-        CCOPTS = { "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+        CPPPATH = { "external/cmocka/include" },
+        CCOPTS = {
+       		{ "-Wno-everything" ; Config = "macosx-*-*" },
+        	{ "/wd4204", "/wd4701", "/wd4703" ; Config = "win64-*-*" },
+       },
     },
 
     Sources = { 
         Glob {
-            Dir = "tests/CuTest",
+            Dir = "external/cmocka",
             Extensions = { ".c" },
         },
     },
@@ -69,6 +72,8 @@ Program {
     Frameworks = { "OpenCL" },
 }
 
+-----------------------------------------------
+
 Program {
     Name = "add_floats",
     Env = { CPPPATH = { "src" }, },
@@ -78,6 +83,20 @@ Program {
    	},
     Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
     Depends = { "sico" },
+    Frameworks = { "OpenCL" },
+}
+
+------------------------------------------------
+
+Program {
+    Name = "tests",
+    Env = { CPPPATH = { "src", "external/cmocka/include" }, },
+    Sources = { 
+    	"tests/tests.c",
+    	-- OpenCLCompile { Source = "tests/add_floats.cl" },
+   	},
+    Libs = { { "OpenCL.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+    Depends = { "sico", "cmocka" },
     Frameworks = { "OpenCL" },
 }
 
@@ -102,4 +121,5 @@ Program {
 
 Default "show_devices"
 Default "add_floats"
+Default "tests"
 Default "sicoc"
