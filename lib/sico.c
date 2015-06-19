@@ -630,7 +630,7 @@ SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const cha
     	return SCIO_GeneralFail;
     }
 
-	if ((setupParameters(device, kernel, queue, params, oclw_sizeof_array(params))) != SCIO_Ok)
+	if ((setupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params))) != SCIO_Ok)
     	return SCIO_GeneralFail;
 
     if ((error = clEnqueueNDRangeKernel(queue, kernel->kern, 1, 0, &elementCount, 0, 0, 0, 0)) != CL_SUCCESS)
@@ -641,12 +641,12 @@ SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const cha
 
     clFinish(queue);
 
-	if ((writeMemoryParams(device, queue, params, oclw_sizeof_array(params))) != SCIO_Ok)
+	if ((writeMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params))) != SCIO_Ok)
     	return SCIO_GeneralFail;
 
     clFinish(queue);
 
-	for (i = 0; i < oclw_sizeof_array(params); ++i)
+	for (i = 0; i < SICO_SIZEOF_ARRAY(params); ++i)
 	{	
 		if (params[i].privData)
     		clReleaseMemObject(params[i].privData);

@@ -36,7 +36,7 @@ typedef enum SCIOState
 #define SICO_MEM_READ_ONLY CL_MEM_READ_ONLY
 #define SICO_PARAMETER (1 << 20)	// not a real memory type
 
-#define oclw_sizeof_array(array) (int)(sizeof(array) / sizeof(array[0]))
+#define SICO_SIZEOF_ARRAY(array) (int)(sizeof(array) / sizeof(array[0]))
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
