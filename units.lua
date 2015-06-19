@@ -2,8 +2,6 @@ require "tundra.syntax.glob"
 require "tundra.path"
 require "tundra.util"
 
--- Used to generate the moc cpp files as needed for .h that uses Q_OBJECT for QtTool(s)
-
 DefRule {
 	Name = "OpenCLCompile",
 	Command = "$(OPENCL_COMPILER) $(<) $(@)",
@@ -21,6 +19,7 @@ DefRule {
 	end,
 }
 
+-----------------------------------------------
 
 StaticLibrary {
 
@@ -39,6 +38,8 @@ StaticLibrary {
 
     Frameworks = { "OpenCL" },
 }
+
+------------------------------------------------
 
 StaticLibrary {
 
