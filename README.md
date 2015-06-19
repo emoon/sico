@@ -21,6 +21,33 @@ And you are done. See https://github.com/emoon/sico/blob/master/examples/add_flo
 
 This example of course trades some performance for simplicity but SICO can be used with more function calls and with more controls in order to improve performance.
 
+Building
+--------
+
+SICO uses the Tundra build system to build it's code. The binaries for Tundra is included for Windows and Mac but for Linux/*BSD/*NIX you need to build it yourself. The latest version can be obtained from here https://github.com/deplinenoise/tundra
+
+
+Mac
+---
+
+From the root directory run scripts/mac_build_debug.sh
+To generate a xcode solution run scripts/mac_gen_xcode_solution.sh
+
+
+Windows
+-------
+
+From the root directory run scripts\win64_build_debug.cmd (Notice that msvc is expected to be in the path so you may have to run scripts\vcvarsx86_amd64.bat first)
+To run from Visual Studio a project can be generated using scripts\win64_gen_vs_solution.cmd
+
+
+Linux/*BSD/*NIX
+---------------
+
+Build the Tundra binary unless you have already.
+From the root directory run scripts/unix_gcc_build_debug.sh
+
+
 Status
 ------
 
