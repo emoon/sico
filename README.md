@@ -4,7 +4,7 @@ SICO
 SICO SI(mple) CO(mpute) is a library built on top of OpenCL in order to make it easier to use OpenCL. OpenCL in general has quite a bit of setup before one actually can start using it. The goal of SICO is to make this a bit easier and accessible (mainly from C/C++ to begin with) if you for example want to run an OpenCL kernel accress a 1D array you would write
 
 ```
-scRunKernel1DArray(...)
+scRunKernel1DArraySimple(...)
 ```  
   
 And here is a small example:
@@ -17,7 +17,7 @@ float outputData[sizeof_array(inputData)];
 scRunKernel1DArraySimple(outputData, inputData, inputData2, "mykernel.cl", sizeof_array(inputData), sizeof(inputData);
 ```
 
-And you are done. See https://github.com/emoon/sico/blob/master/examples/add_floats/add_floats.c for a full example similar to this code.
+And you are done. See https://github.com/emoon/sico/blob/master/examples/basic/add_floats/add_floats.c for a full example similar to this code.
 
 This example of course trades some performance for simplicity but SICO can be used with more function calls and with more controls in order to improve performance.
 
