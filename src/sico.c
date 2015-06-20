@@ -574,11 +574,7 @@ struct SICODevice* scGetBestDevice()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct SICOKernel* scCompileKernelFromSourceFile(
-    struct SICODevice* device,
-    const char*        filename,
-    const char*        kernelName,
-    const char*        buildOpts)
+struct SICOKernel* scCompileKernelFromSourceFile(struct SICODevice* device, const char* filename, const char* kernelName, const char* buildOpts)
 {
     const char* data;
     size_t fileSize;

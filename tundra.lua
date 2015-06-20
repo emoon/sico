@@ -1,7 +1,7 @@
 local macosx = {
     Env = {
         CCOPTS = {
-            "-Wall", "-Weverything", "-Werror",
+			"-Wpedantic", "-Werror", "-Wall",
             "-I.", "-DMACOSX", 
             "-Wno-missing-prototypes", "-Wno-padded",
             { "-O0", "-g"; Config = "*-*-debug" },

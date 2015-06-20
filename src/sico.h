@@ -241,7 +241,11 @@ SCIOState scDestroyCommandQueue(SICOCommanQueue queue);
  * TODO Document
  */
 
+struct SICOKernel* scCompileKernelFromSourceFile(struct SICODevice* device, const char* filename, const char* kernelName, const char* buildOpts);
 
+/*
+ * TODO Document
+ */
 
 SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
 
