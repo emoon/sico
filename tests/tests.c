@@ -12,19 +12,19 @@
 
 static void sico_init(void** state)
 {
-	(void)state;
-	assert_int_equal(scInitialize(), 1);
+    (void)state;
+    assert_int_equal(scInitialize(), 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void sico_get_devices(void** state)
 {
-	(void)state;
-	int deviceCount;
+    (void)state;
+    int deviceCount;
 
-	scGetAllDevices(&deviceCount);
-	assert_int_not_equal(deviceCount, 0);
+    scGetAllDevices(&deviceCount);
+    assert_int_not_equal(deviceCount, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,30 +39,30 @@ static void sico_float_add_default_dev(void** state)
     const size_t inputCount = SICO_SIZEOF_ARRAY(inputData);
     float dataRes[SICO_SIZEOF_ARRAY(inputData)];
 
-	(void)state;
+    (void)state;
 
     scRunKernel1DArraySimple(dataRes, inputData, inputData2, "tests/add_values.cl", inputCount, sizeof(inputData));
 
     for (i = 0; i < inputCount; ++i)
-    	assert_true(fabs(dataRes[i] - expectedResult[i]) < FLT_EPSILON); 
+        assert_true(fabs(dataRes[i] - expectedResult[i]) < FLT_EPSILON);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void sico_alloc_free(void** state)
 {
-	int deviceCount = 1;
+    int deviceCount = 1;
 
-	(void)state;
+    (void)state;
 
-	struct SICODevice** devices = scGetAllDevices(&deviceCount);
+    struct SICODevice** devices = scGetAllDevices(&deviceCount);
 
-	for (int i = 0; i < deviceCount; ++i)
-	{
-		SICOHandle readWrite = scAlloc(devices[i], CL_MEM_READ_WRITE, 64 * 1024, 0);
-		assert_int_not_equal(readWrite , 0);
-		assert_int_equal(scFree(readWrite), 1);
-	}
+    for (int i = 0; i < deviceCount; ++i)
+    {
+        SICOHandle readWrite = scAlloc(devices[i], CL_MEM_READ_WRITE, 64 * 1024, 0);
+        assert_int_not_equal(readWrite, 0);
+        assert_int_equal(scFree(readWrite), 1);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,10 +77,10 @@ int main()
         unit_test(sico_alloc_free),
     };
 
-	int ret = run_tests(tests);
+    int ret = run_tests(tests);
 
-	scClose();
+    scClose();
 
-    return ret; 
+    return ret;
 }
 

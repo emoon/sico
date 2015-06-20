@@ -23,8 +23,8 @@ struct SICOKernel;
 
 typedef enum SCIOState
 {
-    SCIO_Ok,
     SCIO_GeneralFail,
+    SCIO_Ok,
     SCIO_NoDevice,
     SCIO_UnableToBuildKernel,
     SCIO_UnableToExecuteKernel,
@@ -34,8 +34,8 @@ typedef enum SCIOState
 
 typedef enum SCIOMemoryPolicy
 {
-	SCIO_AutoAllocate,
-	SCIO_UserSuppliedData,
+    SCIO_AutoAllocate,
+    SCIO_UserSuppliedData,
 
 } SCIOMemoryPolicy;
 
@@ -54,7 +54,7 @@ typedef struct SICOParam
 {
     uintptr_t data;
     unsigned int type;   // memory type (use defines above)
-	SCIOMemoryPolicy policy;
+    SCIOMemoryPolicy policy;
     size_t size;
     void* privData; // private data
 } SICOParam;
@@ -138,19 +138,19 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
 
 /*
  * Allocate memory from a device. The memory is uninitialized so user is responsible for filling this memory
- * \@param device Device to allocate the memory from 
- * \@param flags cl_mem_flags (see OpenCL docs for a list of all values) 
- * \@param size Number of bytes to allocate 
- * \@param hostPtr (used with CL_MEM_USE_HOST_PTR, etc flags) 
- * Return handle to memory, otherwise 0 
+ * \@param device Device to allocate the memory from
+ * \@param flags cl_mem_flags (see OpenCL docs for a list of all values)
+ * \@param size Number of bytes to allocate
+ * \@param hostPtr (used with CL_MEM_USE_HOST_PTR, etc flags)
+ * Return handle to memory, otherwise 0
  */
 
 SICOHandle scAlloc(struct SICODevice* device, int flags, size_t size, void* hostPtr);
 
 /*
- * Frees memory alloced using scAlloc 
- * \@param handle Handle to memory to free 
- * Return true if memory freed correct, otherwise false 
+ * Frees memory alloced using scAlloc
+ * \@param handle Handle to memory to free
+ * Return true if memory freed correct, otherwise false
  */
 
 bool scFree(SICOHandle handle);
@@ -173,7 +173,22 @@ SICOCommanQueue scCreateCommandQueue(struct SICODevice* device);
  */
 
 
+/*
+ * TODO Document
+ */
 
+int scSetupParameters(struct SICODevice* device, struct SICOKernel* kernel, SICOCommanQueue queue, SICOParam* params, int paramCount);
+
+/*
+ * TODO Document
+ *
+ */  
+
+SCIOState scAddKernel1D(SICOCommanQueue* queue, SICOKernel* kernel, size_t count);
+
+/*
+ * TODO Document
+ */
 
 SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
 

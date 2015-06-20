@@ -86,9 +86,9 @@ const char* getErrorString(cl_int errorCode)
         case CL_MEM_OBJECT_ALLOCATION_FAILURE:
             return "CL_MEM_OBJECT_ALLOCATION_FAILURE";
         case CL_OUT_OF_RESOURCES:
-        	return "CL_OUT_OF_RESOURCES : There is a failure to allocate resources required by the OpenCL implementation on the device.";
+            return "CL_OUT_OF_RESOURCES : There is a failure to allocate resources required by the OpenCL implementation on the device.";
         case CL_OUT_OF_HOST_MEMORY:
-			return "CL_OUT_OF_HOST_MEMORY : There is a failure to allocate resources required by the OpenCL implementation on the host.";
+            return "CL_OUT_OF_HOST_MEMORY : There is a failure to allocate resources required by the OpenCL implementation on the host.";
         case CL_PROFILING_INFO_NOT_AVAILABLE:
             return "CL_PROFILING_INFO_NOT_AVAILABLE";
         case CL_MEM_COPY_OVERLAP:
@@ -106,19 +106,19 @@ const char* getErrorString(cl_int errorCode)
         case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST:
             return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
         case CL_INVALID_VALUE:
-        	return "CL_INVALID_VALUE : Values specified in properties are not valid.";
+            return "CL_INVALID_VALUE : Values specified in properties are not valid.";
         case CL_INVALID_DEVICE_TYPE:
             return "CL_INVALID_DEVICE_TYPE";
         case CL_INVALID_PLATFORM:
             return "CL_INVALID_PLATFORM";
         case CL_INVALID_DEVICE:
-        	return "CL_INVALID_DEVICE : Device is not a valid device or is not associated with context.";
+            return "CL_INVALID_DEVICE : Device is not a valid device or is not associated with context.";
         case CL_INVALID_CONTEXT:
-			return "CL_INVALID_CONTEXT : Context is not a valid context.";
+            return "CL_INVALID_CONTEXT : Context is not a valid context.";
         case CL_INVALID_QUEUE_PROPERTIES:
-        	return "CL_INVALID_QUEUE_PROPERTIES : Values specified in properties are valid but are not supported by the device.";
+            return "CL_INVALID_QUEUE_PROPERTIES : Values specified in properties are valid but are not supported by the device.";
         case CL_INVALID_COMMAND_QUEUE:
-            return "CL_INVALID_COMMAND_QUEUE";
+            return "CL_INVALID_COMMAND_QUEUE : Command queue is not a valid host command-queue.";
         case CL_INVALID_HOST_PTR:
             return "CL_INVALID_HOST_PTR";
         case CL_INVALID_MEM_OBJECT:
@@ -136,13 +136,13 @@ const char* getErrorString(cl_int errorCode)
         case CL_INVALID_PROGRAM:
             return "CL_INVALID_PROGRAM";
         case CL_INVALID_PROGRAM_EXECUTABLE:
-            return "CL_INVALID_PROGRAM_EXECUTABLE";
+            return "CL_INVALID_PROGRAM_EXECUTABLE : There is no successfully built program executable available for device associated with command_queue.";
         case CL_INVALID_KERNEL_NAME:
             return "CL_INVALID_KERNEL_NAME";
         case CL_INVALID_KERNEL_DEFINITION:
             return "CL_INVALID_KERNEL_DEFINITION";
         case CL_INVALID_KERNEL:
-            return "CL_INVALID_KERNEL";
+            return "CL_INVALID_KERNEL : Kernel is not a valid kernel object.";
         case CL_INVALID_ARG_INDEX:
             return "CL_INVALID_ARG_INDEX";
         case CL_INVALID_ARG_VALUE:
@@ -338,7 +338,7 @@ SICODevice** scGetAllDevices(int* count)
         {
             s_devices[deviceIter] = mallocZero(sizeof(SICODevice));
             s_devices[deviceIter]->deviceId = devices[j];
-        	s_devices[deviceIter]->context = createSingleContext(devices[j]);
+            s_devices[deviceIter]->context = createSingleContext(devices[j]);
             clGetDeviceInfo(devices[j], CL_DEVICE_TYPE, sizeof(cl_device_type), &s_devices[deviceIter]->deviceType, 0);
         }
 
@@ -355,18 +355,26 @@ SICODevice** scGetAllDevices(int* count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int setupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
+int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue queue, SICOParam* params, int paramCount)
 {
     uint8_t needsUpload[256] = { 0 };
     cl_int error;
     cl_mem mem;
-    uint32_t i;
 
-    assert(paramCount < sizeof(needsUpload));
+    if (!device)
+        return SCIO_NoDevice;
+
+    if (!kernel || !queue || !params || params == 0)
+        return SCIO_GeneralFail;
+
+    if (!device->context)
+        return SCIO_GeneralFail;
+
+    assert(paramCount < (int)sizeof(needsUpload));
 
     // Create memory objects
 
-    for (i = 0; i < paramCount; ++i)
+    for (int i = 0; i < paramCount; ++i)
     {
         SICOParam* param = &params[i];
 
@@ -400,7 +408,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQue
 
     // Setup the memory objects that needs to be transfered
 
-    for (i = 0; i < paramCount; ++i)
+    for (int i = 0; i < paramCount; ++i)
     {
         SICOParam* param = &params[i];
 
@@ -416,7 +424,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQue
 
     // Setup kernel parameters
 
-    for (i = 0; i < paramCount; ++i)
+    for (int i = 0; i < paramCount; ++i)
     {
         SICOParam* param = &params[i];
 
@@ -481,18 +489,18 @@ int scInitialize()
 
 void scClose()
 {
-	for (int i = 0; i < s_deviceCount; ++i)
-	{
-		SICODevice* device = s_devices[i];
+    for (int i = 0; i < s_deviceCount; ++i)
+    {
+        SICODevice* device = s_devices[i];
 
-		if (!device->context)
-			continue;
+        if (!device->context)
+            continue;
 
-		int error = clReleaseContext(device->context);
+        int error = clReleaseContext(device->context);
 
-		if (error != CL_SUCCESS)
-			sico_log("%s ", getErrorString(error));
-	}
+        if (error != CL_SUCCESS)
+            sico_log("%s ", getErrorString(error));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -690,61 +698,17 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
 
 SICOHandle scAlloc(struct SICODevice* device, int flags, size_t size, void* hostPtr)
 {
-	cl_int errorCode;
+    cl_int errorCode;
 
-	cl_mem mem = clCreateBuffer(device->context, (cl_mem_flags)flags, size, hostPtr, &errorCode);
+    cl_mem mem = clCreateBuffer(device->context, (cl_mem_flags)flags, size, hostPtr, &errorCode);
 
-	if (errorCode == CL_SUCCESS)
-		return (SICOHandle)mem;
+    if (errorCode != CL_SUCCESS)
+    {
+        sico_log("%s\n", getErrorString(errorCode));
+        mem = 0;
+    }
 
-	mem = 0;
-
-	switch (errorCode)
-	{
-		case CL_INVALID_CONTEXT:
-		{
-			sico_log("%s : Invalid context\n", getErrorString(errorCode)); 
-			break;
-		}
-
-		case CL_INVALID_VALUE:
-		{
-			sico_log("%s : if values specified in flags are not valid as defined in the table above.\n", getErrorString(errorCode));
-			break;
-		}
-
-		case CL_INVALID_BUFFER_SIZE:
-		{
-			sico_log("%s : Size is 0\n", getErrorString(errorCode));
-			break;
-		}
-
-		case CL_INVALID_HOST_PTR:
-		{
-			sico_log("%s : if host_ptr is NULL and CL_MEM_USE_HOST_PTR or CL_MEM_COPY_HOST_PTR are set in flags or if host_ptr is not NULL but CL_MEM_COPY_HOST_PTR or CL_MEM_USE_HOST_PTR are not set in flags.\n", getErrorString(errorCode));
-			break;
-		}
-
-		case CL_MEM_OBJECT_ALLOCATION_FAILURE:
-		{
-			sico_log("%s : if there is a failure to allocate memory for buffer object\n", getErrorString(errorCode));
-			break;
-		}
-
-		case CL_OUT_OF_HOST_MEMORY:
-		{
-			sico_log("%s : if there is a failure to allocate resources required by the OpenCL implementation on the host\n", getErrorString(errorCode));
-			break;
-		}
-
-		default :
-		{
-			sico_log("%s : Unknown error\n", getErrorString(errorCode));
-			break;
-		}
-	}
-
-	return (SICOHandle)mem;
+    return (SICOHandle)mem;
 }
 
 
@@ -752,33 +716,14 @@ SICOHandle scAlloc(struct SICODevice* device, int flags, size_t size, void* host
 
 bool scFree(SICOHandle handle)
 {
-	int errorCode = clReleaseMemObject((cl_mem)handle);
+    int errorCode = clReleaseMemObject((cl_mem)handle);
 
-	if (errorCode == CL_SUCCESS)
-		return true;
+    if (errorCode == CL_SUCCESS)
+        return true;
 
-	switch (errorCode)
-	{
-		case CL_INVALID_MEM_OBJECT:
-		{
-			sico_log("%s : if memobj is a not a valid memory object.\n", getErrorString(errorCode));
-			break;
-		}
+    sico_log("%s\n", getErrorString(errorCode));
 
-		case CL_OUT_OF_RESOURCES: 
-		{
-			sico_log("%s : if there is a failure to allocate resources required by the OpenCL implementation on the device\n", getErrorString(errorCode));
-			break;
-		}
-
-		case CL_OUT_OF_HOST_MEMORY: 
-		{
-			sico_log("%s : if there is a failure to allocate resources required by the OpenCL implementation on the host.\n", getErrorString(errorCode));
-			break;
-		}
-	}
-
-	return false;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -791,28 +736,104 @@ SICOCommanQueue scCreateCommandQueue(struct SICODevice* device)
     queue = clCreateCommandQueue(device->context, device->deviceId, 0, &error);
 
     if (error == CL_SUCCESS)
-    	return (SICOCommanQueue)queue;
+        return (SICOCommanQueue)queue;
 
-	sico_log("%s\n", getErrorString(error));
+    sico_log("%s", getErrorString(error));
 
-	return 0;
+    return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SCIOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
+                      const size_t* globalWorkOffset, const size_t* globalWorkSize, const size_t* localWorkSize,
+                      int eventListCount, void* waitEventList, void* event)
+{
+    cl_int error = clEnqueueNDRangeKernel((cl_command_queue)queue, kernel->kern,
+                                          (unsigned int)workDim, globalWorkOffset, globalWorkSize, localWorkSize,
+                                          (cl_uint)eventListCount, waitEventList, event);
+
+    if (error == CL_SUCCESS)
+        return SCIO_Ok;
+
+    switch (error)
+    {
+        case CL_INVALID_PROGRAM_EXECUTABLE:
+            sico_log("%s ", "CL_INVALID_PROGRAM_EXECUTABLE if there is no successfully built program executable available for device associated with command_queue.\n"); break;
+        case CL_INVALID_COMMAND_QUEUE:
+            sico_log("%s ", " CL_INVALID_COMMAND_QUEUE : if command_queue is not a valid host command-queue.\n"); break;
+        case CL_INVALID_KERNEL:
+            sico_log("%s ", " CL_INVALID_KERNEL : if kernel is not a valid kernel object.\n"); break;
+        case CL_INVALID_CONTEXT:
+            sico_log("%s ", " CL_INVALID_CONTEXT : if context associated with command_queue and kernel is not the same or if the context associated with command_queue and events in event_wait_list are not the same.\n"); break;
+        case CL_INVALID_KERNEL_ARGS:
+            sico_log("%s ", " CL_INVALID_KERNEL_ARGS : if the kernel argument values have not been specified or if a kernel argument declared to be a pointer to a type does not point to a named address space.\n"); break;
+        case CL_INVALID_WORK_DIMENSION:
+            sico_log("%s ", " CL_INVALID_WORK_DIMENSION : if work_dim is not a valid value (i.e. a value between 1 and 3).\n"); break;
+        case CL_INVALID_GLOBAL_WORK_SIZE:
+            sico_log("%s ", " CL_INVALID_GLOBAL_WORK_SIZE : if global_work_size is NULL, or if any of the values specified in global_work_size[0], ...global_work_size [work_dim - 1] are 0 or exceed the range given by the sizeof(size_t) for the device on which the kernel execution will be enqueued.\n"); break;
+        case CL_INVALID_GLOBAL_OFFSET:
+            sico_log("%s ", " CL_INVALID_GLOBAL_OFFSET : if the value specified in global_work_size + the corresponding values in global_work_offset for any dimensions is greater than the sizeof(size_t) for the device on which the kernel execution will be enqueued.\n"); break;
+        case CL_MISALIGNED_SUB_BUFFER_OFFSET:
+            sico_log("%s ", " CL_MISALIGNED_SUB_BUFFER_OFFSET : if a sub-buffer object is specified as the value for an argument that is a buffer object and the offset specified when the sub-buffer object is created is not aligned to CL_DEVICE_MEM_BASE_ADDR_ALIGN value for device associated with queue.\n"); break;
+        case CL_INVALID_IMAGE_SIZE:
+            sico_log("%s ", " CL_INVALID_IMAGE_SIZE : if an image object is specified as an argument value and the image dimensions (image width, height, specified or compute row and/or slice pitch) are not supported by device associated with queue.\n"); break;
+        case CL_IMAGE_FORMAT_NOT_SUPPORTED:
+            sico_log("%s ", " CL_IMAGE_FORMAT_NOT_SUPPORTED : if an image object is specified as an argument value and the image format (image channel order and data type) is not supported by device associated with queue.\n"); break;
+        case CL_MEM_OBJECT_ALLOCATION_FAILURE:
+            sico_log("%s ", " CL_MEM_OBJECT_ALLOCATION_FAILURE : if there is a failure to allocate memory for data store associated with image or buffer objects specified as arguments to kernel.\n"); break;
+        case CL_INVALID_EVENT_WAIT_LIST:
+            sico_log("%s ", " CL_INVALID_EVENT_WAIT_LIST : if event_wait_list is NULL and num_events_in_wait_list > 0, or event_wait_list is not NULL and num_events_in_wait_list is 0, or if event objects in event_wait_list are not valid events.\n"); break;
+        case CL_INVALID_OPERATION:
+            sico_log("%s ", " CL_INVALID_OPERATION : if SVM pointers are passed as arguments to a kernel and the device does not support SVM or if system pointers are passed as arguments to a kernel and/or stored inside SVM allocations passed as kernel arguments and the device does not support fine grain system SVM allocations.\n"); break;
+        case CL_OUT_OF_HOST_MEMORY:
+            sico_log("%s ", " CL_OUT_OF_HOST_MEMORY : if there is a failure to allocate resources required by the OpenCL implementation on the host.\n"); break;
+        case CL_OUT_OF_RESOURCES:
+        {
+            sico_log("%s ", " CL_OUT_OF_RESOURCES : if there is a failure to queue the execution instance of kernel on the command-queue because of insufficient resources needed to execute the kernel. For example, the explicitly specified local_work_size causes a failure to execute the kernel because of insufficient resources such as registers or local memory. Another example would be the number of read-only image args used in kernel exceed the CL_DEVICE_MAX_READ_IMAGE_ARGS value for device or the number of write-only image args used in kernel exceed the CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS value for device or the number of samplers used in kernel exceed CL_DEVICE_MAX_SAMPLERS for device.\n");
+            sico_log("%s ", " CL_OUT_OF_RESOURCES : if there is a failure to allocate resources required by the OpenCL implementation on the device.\n");
+            break;
+        }
+        case CL_INVALID_WORK_ITEM_SIZE:
+        {
+            sico_log("%s ", " CL_INVALID_WORK_ITEM_SIZE : if the number of work-items specified in any of local_work_size[0], ... local_work_size[work_dim - 1] is greater than the corresponding values specified by CL_DEVICE_MAX_WORK_ITEM_SIZES[0], .... CL_DEVICE_MAX_WORK_ITEM_SIZES[work_dim - 1].\n");
+            sico_log("%s ", " CL_INVALID_WORK_ITEM_SIZE : if the number of work-items specified in any of local_work_size[0], ... local_work_size[work_dim – 1] is greater than the corresponding values specified by CL_DEVICE_MAX_WORK_ITEM_SIZES[0], ... CL_DEVICE_MAX_WORK_ITEM_SIZES[work_dim – 1].\n");
+            break;
+        }
+        case CL_INVALID_WORK_GROUP_SIZE:
+        {
+            sico_log("%s ", " CL_INVALID_WORK_GROUP_SIZE : if local_work_size is specified and does not match the work-group size for kernel in the program source given by the __attribute__ ((reqd_work_group_size(X, Y, Z))) qualifier.\n"); break;
+            sico_log("%s ", " CL_INVALID_WORK_GROUP_SIZE : if local_work_size is specified and the total number of work-items in the work-group computed as local_work_size[0] * … local_work_size[work_dim – 1] is greater than the value specified by CL_DEVICE_MAX_WORK_GROUP_SIZE in the table of OpenCL Device Queries for clGetDeviceInfo.\n");
+            sico_log("%s ", " CL_INVALID_WORK_GROUP_SIZE : if local_work_size is NULL and the __attribute__ ((reqd_work_group_size(X, Y, Z))) qualifier is used to declare the work-group size for kernel in the program source.\n");
+            sico_log("%s ", " CL_INVALID_WORK_GROUP_SIZE : if the program was compiled with –cl-uniform-work-group-size and the number of work-items specified by global_work_size is not evenly divisible by size of work-group given by local_work_size.\n");
+            break;
+        }
+    }
+
+    return SCIO_GeneralFail;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SCIOState scAddKernel1D(SICOCommanQueue* queue, SICOKernel* kernel, size_t count)
+{
+    return scAddKernel(queue, kernel, 1, 0, &count, 0, 0, 0, 0);
+}
 
 /*
 
-SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size)
-{
+   SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size)
+   {
 
-}
-
-
-SICOHandle scAsycCopyToDevice(SICOHandle handle, const void* memory, int size);
+   }
 
 
-SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
+   SICOHandle scAsycCopyToDevice(SICOHandle handle, const void* memory, int size);
 
-*/
+
+   SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
+
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -821,8 +842,7 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
     SICODevice* device;
     SICOKernel* kernel;
     uint32_t i;
-    cl_int error;
-    cl_command_queue queue;
+    SICOCommanQueue queue;
 
     SICOParam params[] =
     {
@@ -842,22 +862,14 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
     if (!(kernel = scCompileKernelFromSourceFile(device, filename, "kern", "")))
         return SCIO_UnableToBuildKernel;
 
-    // TODO: Abstract the queue
-
-    if (!(queue = clCreateCommandQueue(device->context, device->deviceId, 0, &error)))
-    {
-        sico_log("SICO: Unable to create command queue, error: %s\n", getErrorString(error));
-        return SCIO_GeneralFail;
-    }
-
-    if ((setupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params))) != SCIO_Ok)
+    if (!(queue = scCreateCommandQueue(device)))
         return SCIO_GeneralFail;
 
-    if ((error = clEnqueueNDRangeKernel(queue, kernel->kern, 1, 0, &elementCount, 0, 0, 0, 0)) != CL_SUCCESS)
-    {
-        sico_log("clEnqueueNDRangeKernel failed, error %s\n", getErrorString(error));
+    if ((scSetupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params))) != SCIO_Ok)
         return SCIO_GeneralFail;
-    }
+
+    if ((scAddKernel1D(queue, kernel, elementCount)) != SCIO_Ok)
+        return SCIO_GeneralFail;
 
     clFinish(queue);
 
