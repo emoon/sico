@@ -40,12 +40,16 @@ local win32 = {
 
 local win64 = {
     Env = {
-		CPPPATH = {
-			{ "external/windows/include" ; Config = "win32-*-*" },
-		},
+	CPPPATH = {
+		{ "external/windows/include" },
+	},
+	LIBPATH = {
+		{ "external/windows/lib/amd64" },
+	},
+
         GENERATE_PDB = "1",
         CCOPTS = {
-            "/MT", "/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
+            "/MT", "/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389", "/wd4204", "/wd4706",
             { "/Od"; Config = "*-*-debug" },
             { "/O2"; Config = "*-*-release" },
         },

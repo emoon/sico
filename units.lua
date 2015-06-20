@@ -49,7 +49,7 @@ StaticLibrary {
         CPPPATH = { "external/cmocka/include" },
         CCOPTS = {
        		{ "-Wno-everything" ; Config = "macosx-*-*" },
-        	{ "/wd4204", "/wd4701", "/wd4703" ; Config = "win64-*-*" },
+        	{ "/wd4204", "/wd4701", "/wd4703" ; Config = { "win32-*-*", "win64-*-*" } },
        },
     },
 

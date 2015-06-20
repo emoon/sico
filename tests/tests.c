@@ -10,16 +10,18 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void sico_init(void** __unused state)
+static void sico_init(void** state)
 {
+	(void)state;
 	assert_int_equal(scInitialize(), 1);
 	scClose();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void sico_get_devices(void** __unused state)
+static void sico_get_devices(void** state)
 {
+	(void)state;
 	int deviceCount;
 
 	scGetAllDevices(&deviceCount);
@@ -28,8 +30,9 @@ static void sico_get_devices(void** __unused state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void sico_float_add_default_dev(void** __unused state)
+static void sico_float_add_default_dev(void** state)
 {
+	(void)state;
     size_t i;
     float inputData[] = { 1.0f, 2.0f, 3.0f, 4.0f };
     float inputData2[] = { 11.0f, 12.0f, 13.0f, 14.0f };
