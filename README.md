@@ -23,7 +23,7 @@ This example of course trades some performance for simplicity but SICO can be us
 
 Another example is a Mandelbrot fractal
 
-https://cloud.githubusercontent.com/assets/350822/8268555/37961350-178a-11e5-8e2a-97a4f4901d69.jpg
+![fractal](https://cloud.githubusercontent.com/assets/350822/8268555/37961350-178a-11e5-8e2a-97a4f4901d69.jpg)
 
 And the code can be found here https://github.com/emoon/sico/blob/master/examples/advanced/mandelbrot_fractal/mandelbrot_fractal.c
 
