@@ -34,8 +34,8 @@ typedef enum SCIOState
 
 typedef enum SCIOMemoryPolicy
 {
-    SCIO_AutoAllocate,
-    SCIO_UserSuppliedData,
+    SICO_AutoAllocate,
+    SICO_UserSuppliedData,
 
 } SCIOMemoryPolicy;
 

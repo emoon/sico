@@ -37,7 +37,7 @@ int main()
     {
         SICOParam params[] =
         {
-            { (uintptr_t)s_buffer, SICO_MEM_READ_WRITE, SCIO_AutoAllocate, WIDTH * HEIGHT * sizeof(unsigned int), 0 },
+            { (uintptr_t)s_buffer, SICO_MEM_READ_WRITE, SICO_AutoAllocate, WIDTH * HEIGHT * sizeof(unsigned int), 0 },
             { (uintptr_t)&time, SICO_PARAMETER, 0, sizeof(float), 0 },
         };
 

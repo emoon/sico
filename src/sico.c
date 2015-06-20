@@ -378,7 +378,7 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
     {
         SICOParam* param = &params[i];
 
-        if (param->type == SICO_PARAMETER || param->policy == SCIO_UserSuppliedData)
+        if (param->type == SICO_PARAMETER || param->policy == SICO_UserSuppliedData)
         {
             param->privData = 0;
             continue;
@@ -893,9 +893,9 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
 
     SICOParam params[] =
     {
-        { (uintptr_t)dest, SICO_MEM_READ_WRITE, SCIO_AutoAllocate, sizeInBytes, 0 },
-        { (uintptr_t)sourceA, SICO_MEM_READ_ONLY, SCIO_AutoAllocate, sizeInBytes, 0 },
-        { (uintptr_t)sourceB, SICO_MEM_READ_ONLY, SCIO_AutoAllocate, sizeInBytes, 0 },
+        { (uintptr_t)dest, SICO_MEM_READ_WRITE, SICO_AutoAllocate, sizeInBytes, 0 },
+        { (uintptr_t)sourceA, SICO_MEM_READ_ONLY, SICO_AutoAllocate, sizeInBytes, 0 },
+        { (uintptr_t)sourceB, SICO_MEM_READ_ONLY, SICO_AutoAllocate, sizeInBytes, 0 },
     };
 
     scInitialize();
