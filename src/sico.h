@@ -182,21 +182,21 @@ int scSetupParameters(struct SICODevice* device, struct SICOKernel* kernel, SICO
 /*
  * TODO Document
  *
- */  
+ */
 
 SCIOState scAddKernel1D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t count);
 
 /*
  * TODO Document
  *
- */  
+ */
 
 SCIOState scAddKernel2D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
 
 /*
  * TODO Document
  *
- */  
+ */
 
 SCIOState scAddKernel(SICOCommanQueue* queue, struct SICOKernel* kernel, int workDim,
                       const size_t* globalWorkOffset, const size_t* globalWorkSize, const size_t* localWorkSize,
@@ -228,13 +228,13 @@ SCIOState scWriteMemoryParams(struct SICODevice* device, SICOCommanQueue queue, 
  */
 
 
-SCIOState scCommandQueueFlush(SICOCommanQueue queue); 
+SCIOState scCommandQueueFlush(SICOCommanQueue queue);
 
 /*
- * scDestroyCommandQueue 
+ * scDestroyCommandQueue
  */
 
-SCIOState scDestroyCommandQueue(SICOCommanQueue queue); 
+SCIOState scDestroyCommandQueue(SICOCommanQueue queue);
 
 
 /*

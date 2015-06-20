@@ -33,24 +33,24 @@ static void sico_float_add_default_dev(void** state)
 {
     (void)state;
 
-	int count = 64 * 1024;
+    int count = 64 * 1024;
     size_t dataSize = sizeof(float) * (size_t)count;
 
-	float* inputData = (float*)malloc(dataSize);
-	float* inputData2 = (float*)malloc(dataSize);
-	float* dataRes = (float*)malloc(dataSize);
-	float* expectedResult = (float*)malloc(dataSize);
+    float* inputData = (float*)malloc(dataSize);
+    float* inputData2 = (float*)malloc(dataSize);
+    float* dataRes = (float*)malloc(dataSize);
+    float* expectedResult = (float*)malloc(dataSize);
 
-	for (int i = 0; i < count; ++i)
-	{
-		float v = (float)i;
-		inputData[i] = v; 
-		inputData2[i] = 10.0f;
-		expectedResult[i] = v + 10.0f;
-		dataRes[i] = 0.0f;
-	}
+    for (int i = 0; i < count; ++i)
+    {
+        float v = (float)i;
+        inputData[i] = v;
+        inputData2[i] = 10.0f;
+        expectedResult[i] = v + 10.0f;
+        dataRes[i] = 0.0f;
+    }
 
-    scRunKernel1DArraySimple(dataRes, inputData, inputData2, "tests/add_values.cl", (size_t)count, dataSize); 
+    scRunKernel1DArraySimple(dataRes, inputData, inputData2, "tests/add_values.cl", (size_t)count, dataSize);
 
     for (int i = 0; i < count; ++i)
         assert_true(fabs(dataRes[i] - expectedResult[i]) < FLT_EPSILON);

@@ -820,7 +820,7 @@ SCIOState scAddKernel1D(SICOCommanQueue* queue, SICOKernel* kernel, size_t count
 
 SCIOState scAddKernel2D(SICOCommanQueue* queue, SICOKernel* kernel, size_t sizeX, size_t sizeY)
 {
-	size_t sizes[] = { sizeX, sizeY };
+    size_t sizes[] = { sizeX, sizeY };
 
     return scAddKernel(queue, kernel, 2, 0, (size_t*)&sizes, 0, 0, 0, 0);
 }
@@ -857,16 +857,16 @@ void scFreeParams(SICOParam* params, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scCommandQueueFlush(SICOCommanQueue queue) 
+SCIOState scCommandQueueFlush(SICOCommanQueue queue)
 {
-	cl_int errorCode = clFinish(queue);
+    cl_int errorCode = clFinish(queue);
 
-	if (errorCode == CL_SUCCESS)
-		return SCIO_Ok;
+    if (errorCode == CL_SUCCESS)
+        return SCIO_Ok;
 
-	sico_log("%s ", getErrorString(errorCode));
+    sico_log("%s ", getErrorString(errorCode));
 
-	return SCIO_GeneralFail;
+    return SCIO_GeneralFail;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -876,11 +876,11 @@ SCIOState scDestroyCommandQueue(SICOCommanQueue queue)
     cl_int errorCode = clReleaseCommandQueue(queue);
 
     if (errorCode == CL_SUCCESS)
-    	return SCIO_Ok;
+        return SCIO_Ok;
 
-	sico_log("%s ", getErrorString(errorCode));
+    sico_log("%s ", getErrorString(errorCode));
 
-	return SCIO_GeneralFail;
+    return SCIO_GeneralFail;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -923,7 +923,7 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
 
     scCommandQueueFlush(queue);
 
-	scFreeParams(params, SICO_SIZEOF_ARRAY(params));
+    scFreeParams(params, SICO_SIZEOF_ARRAY(params));
 
     scDestroyCommandQueue(queue);
 

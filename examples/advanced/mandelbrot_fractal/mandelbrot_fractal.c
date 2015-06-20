@@ -26,15 +26,15 @@ int main()
     if (!(kernel = scCompileKernelFromSourceFile(device, "examples/advanced/mandelbrot_fractal/mandelbrot_fractal.cl", "kern", "")))
         return 0;
 
-	if (!mfb_open("SICO - OpenCL - Mandelbrot Fractal - Press ESC to Exit", WIDTH, HEIGHT))
-		return 0;
+    if (!mfb_open("SICO - OpenCL - Mandelbrot Fractal - Press ESC to Exit", WIDTH, HEIGHT))
+        return 0;
 
     queue = scCreateCommandQueue(device);
 
     float time = 0.0f;
 
-	for (;;)
-	{
+    for (;;)
+    {
         SICOParam params[] =
         {
             { (uintptr_t)s_buffer, SICO_MEM_READ_WRITE, SCIO_AutoAllocate, WIDTH * HEIGHT * sizeof(unsigned int), 0 },
@@ -46,20 +46,20 @@ int main()
         scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params));
 
         scCommandQueueFlush(queue);
-	    scFreeParams(params, SICO_SIZEOF_ARRAY(params));
+        scFreeParams(params, SICO_SIZEOF_ARRAY(params));
 
-		int state = mfb_update(s_buffer);
+        int state = mfb_update(s_buffer);
 
-		time += 0.01f;
+        time += 0.01f;
 
-		if (state < 0)
-			break;
-	}
+        if (state < 0)
+            break;
+    }
 
-	scDestroyCommandQueue(queue);
-	scClose();
+    scDestroyCommandQueue(queue);
+    scClose();
 
-	mfb_close();
+    mfb_close();
 
-	return 1;
+    return 1;
 }
