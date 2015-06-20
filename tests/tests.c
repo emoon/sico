@@ -38,7 +38,7 @@ static void sico_float_add_default_dev(void** __unused state)
     const size_t inputCount = SICO_SIZEOF_ARRAY(inputData);
     float dataRes[SICO_SIZEOF_ARRAY(inputData)];
 
-    scRunKernel1DArray(dataRes, inputData, inputData2, "tests/add_values.cl", inputCount, sizeof(inputData));
+    scRunKernel1DArraySimple(dataRes, inputData, inputData2, "tests/add_values.cl", inputCount, sizeof(inputData));
 
     for (i = 0; i < inputCount; ++i)
     	assert_true(fabs(dataRes[i] - expectedResult[i]) < FLT_EPSILON); 

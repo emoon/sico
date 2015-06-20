@@ -337,7 +337,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
     {
         SICOParam* param = &params[i];
 
-        if (param->type == SICO_PARAMETER)
+        if (param->type == SICO_PARAMETER || param->policy == SCIO_UserSuppliedData)
         {
             param->privData = 0;
             continue;
@@ -345,7 +345,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 
         if (device->deviceType == CL_DEVICE_TYPE_CPU)
         {
-            if (!(mem = clCreateBuffer(device->context, param->type | CL_MEM_USE_HOST_PTR, param->size, param->data, &error)))
+            if (!(mem = clCreateBuffer(device->context, param->type | CL_MEM_USE_HOST_PTR, param->size, (void*)param->data, &error)))
             {
                 printf("SICO: CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
                 return SCIO_GeneralFail;
@@ -374,7 +374,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
         if (needsUpload[i] == 0)
             continue;
 
-        if ((error = clEnqueueWriteBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, param->data, 0, NULL, NULL)) != CL_SUCCESS)
+        if ((error = clEnqueueWriteBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
             printf("SICO: clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
@@ -388,7 +388,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
         SICOParam* param = &params[i];
 
         if (param->type == SICO_PARAMETER)
-            error = clSetKernelArg(kernel->kern, (cl_uint)i, param->size, param->data);
+            error = clSetKernelArg(kernel->kern, (cl_uint)i, param->size, (void*)param->data);
         else
             error = clSetKernelArg(kernel->kern, (cl_uint)i, sizeof(cl_mem), (cl_mem) & param->privData);
 
@@ -421,7 +421,7 @@ static int writeMemoryParams(SICODevice* device, cl_command_queue queue, SICOPar
         if (param->type == SICO_MEM_READ_ONLY || param->type == SICO_PARAMETER)
             continue;
 
-        if ((error = clEnqueueReadBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, param->data, 0, NULL, NULL)) != CL_SUCCESS)
+        if ((error = clEnqueueReadBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
             printf("SICO: clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
@@ -641,10 +641,39 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
     return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+
+SICOHandle scAlloc(struct SICODevice* device, size_t size)
+{
+
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes)
+void scFree(SICOHandle handle)
+{
+
+}
+
+
+SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size)
+{
+
+}
+
+
+SICOHandle scAsycCopyToDevice(SICOHandle handle, const void* memory, int size);
+
+
+SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
+
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes)
 {
     SICODevice* device;
     SICOKernel* kernel;
@@ -654,9 +683,9 @@ SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const cha
 
     SICOParam params[] =
     {
-        { dest, SICO_MEM_READ_WRITE, sizeInBytes, 0 },
-        { sourceA, SICO_MEM_READ_ONLY, sizeInBytes, 0 },
-        { sourceB, SICO_MEM_READ_ONLY, sizeInBytes, 0 },
+        { (uintptr_t)dest, SICO_MEM_READ_WRITE, SCIO_AutoAllocate, sizeInBytes, 0 },
+        { (uintptr_t)sourceA, SICO_MEM_READ_ONLY, SCIO_AutoAllocate, sizeInBytes, 0 },
+        { (uintptr_t)sourceB, SICO_MEM_READ_ONLY, SCIO_AutoAllocate, sizeInBytes, 0 },
     };
 
     scInitialize();

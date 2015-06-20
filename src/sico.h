@@ -31,6 +31,15 @@ typedef enum SCIOState
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef enum SCIOMemoryPolicy
+{
+	SCIO_AutoAllocate,
+	SCIO_UserSuppliedData,
+
+} SCIOMemoryPolicy;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #define SICO_MEM_READ_WRITE CL_MEM_READ_WRITE
 #define SICO_MEM_WRITE_ONLY CL_MEM_WRITE_ONLY
 #define SICO_MEM_READ_ONLY CL_MEM_READ_ONLY
@@ -42,8 +51,9 @@ typedef enum SCIOState
 
 typedef struct SICOParam
 {
-    void* data;
+    uintptr_t data;
     unsigned int type;   // memory type (use defines above)
+	SCIOMemoryPolicy policy;
     size_t size;
     void* privData; // private data
 } SICOParam;
@@ -144,7 +154,7 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
  */
 
 
-SCIOState scRunKernel1DArray(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
+SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
 
 #ifdef __cplusplus
 }

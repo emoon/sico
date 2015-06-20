@@ -11,7 +11,7 @@ int main(void)
     const size_t inputCount = SICO_SIZEOF_ARRAY(inputData);
     float dataRes[SICO_SIZEOF_ARRAY(inputData)];
 
-    scRunKernel1DArray(dataRes, inputData, inputData2, "examples/add_floats/add_floats.cl", inputCount, sizeof(inputData));
+    scRunKernel1DArraySimple(dataRes, inputData, inputData2, "examples/add_floats/add_floats.cl", inputCount, sizeof(inputData));
 
     for (i = 0; i < inputCount; ++i)
         printf("data %f\n", dataRes[i]);

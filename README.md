@@ -14,7 +14,7 @@ float inputData[] = { 1.0f, 2.0f, 3.0f, 4.0f };
 float inputData2[] = { 5.0f, 6.0f, 7.0f, 8.0f };
 float outputData[sizeof_array(inputData)];
 
-scRunKernel1DArray(outputData, inputData, inputData2, "mykernel.cl", sizeof_array(inputData), sizeof(inputData);
+scRunKernel1DArraySimple(outputData, inputData, inputData2, "mykernel.cl", sizeof_array(inputData), sizeof(inputData);
 ```
 
 And you are done. See https://github.com/emoon/sico/blob/master/examples/add_floats/add_floats.c for a full example similar to this code.
