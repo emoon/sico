@@ -31,20 +31,34 @@ static void sico_get_devices(void** state)
 
 static void sico_float_add_default_dev(void** state)
 {
-    size_t i;
-    float inputData[] = { 1.0f, 2.0f, 3.0f, 4.0f };
-    float inputData2[] = { 11.0f, 12.0f, 13.0f, 14.0f };
-    const float expectedResult[] = { 12.0f, 14.0f, 16.0f, 18.0f };
-
-    const size_t inputCount = SICO_SIZEOF_ARRAY(inputData);
-    float dataRes[SICO_SIZEOF_ARRAY(inputData)];
-
     (void)state;
 
-    scRunKernel1DArraySimple(dataRes, inputData, inputData2, "tests/add_values.cl", inputCount, sizeof(inputData));
+	int count = 64 * 1024;
+    size_t dataSize = sizeof(float) * (size_t)count;
 
-    for (i = 0; i < inputCount; ++i)
+	float* inputData = (float*)malloc(dataSize);
+	float* inputData2 = (float*)malloc(dataSize);
+	float* dataRes = (float*)malloc(dataSize);
+	float* expectedResult = (float*)malloc(dataSize);
+
+	for (int i = 0; i < count; ++i)
+	{
+		float v = (float)i;
+		inputData[i] = v; 
+		inputData2[i] = 10.0f;
+		expectedResult[i] = v + 10.0f;
+		dataRes[i] = 0.0f;
+	}
+
+    scRunKernel1DArraySimple(dataRes, inputData, inputData2, "tests/add_values.cl", (size_t)count, dataSize); 
+
+    for (int i = 0; i < count; ++i)
         assert_true(fabs(dataRes[i] - expectedResult[i]) < FLT_EPSILON);
+
+    free(inputData);
+    free(inputData2);
+    free(dataRes);
+    free(expectedResult);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
