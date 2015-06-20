@@ -135,6 +135,11 @@ struct SICODevice* scGetBestDevice();
 
 int scCompileFromFile(struct SICODevice* device, const char* filename, const char* buildOpts);
 
+SICOHandle scAlloc(struct SICODevice* device, int flags, size_t size, void* hostPtr);
+
+bool scFree(SICOHandle handle);
+
+
 /*
 
    SICOHandle scAlloc(struct SICODevice* device, size_t size);

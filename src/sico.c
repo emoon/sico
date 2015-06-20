@@ -8,6 +8,37 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if defined(__clang__) || defined(__gcc__)
+static void sico_log_internal(const char* format, ...) __attribute__((format(printf, 1, 2)));
+#else
+static void sico_log_internal(const char* format, ...);
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void sico_log_internal(const char* format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+#if defined(_WIN32)
+    {
+        char buffer[2048];
+        vsprintf(buffer, format, ap);
+        OutputDebugStringA(buffer);
+    }
+#else
+    vprintf(format, ap);
+#endif
+    va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define sico_log(format, ...) sico_log_internal("%s(%d) : %s " format, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static cl_platform_id s_platformId = 0;
 static struct SICODevice** s_devices = 0;
 static int s_deviceCount = 0;
@@ -157,7 +188,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
 
     if (!f)
     {
-        printf("SICO: Unable to open file %s\n", file);
+        sico_log("Unable to open file %s\n", file);
         return 0;
     }
 
@@ -172,7 +203,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
     {
         free(data);
         fclose(f);
-        printf("SICO: Unable to read the whole file %s to memory\n", file);
+        sico_log("SICO: Unable to read the whole file %s to memory\n", file);
     }
 
     *size = fileSize;
@@ -209,7 +240,6 @@ static void printOrAppendString(char* output, cl_device_id dev, cl_device_info p
     else
     {
         printf(fmt, id, index, value);
-
     }
 
     free(value);
@@ -253,7 +283,9 @@ cl_context createSingleContext(cl_device_id deviceId)
     if ((context = clCreateContext(0, 1, &deviceId, NULL, NULL, &err)))
         return context;
 
-    printf("SICO: Unable to create context. Error %s\n", getErrorString(err));
+    // TODO: Include more detailed error messages
+
+    sico_log("Unable to create context. Error %s\n", getErrorString(err));
 
     return 0;
 }
@@ -306,6 +338,7 @@ SICODevice** scGetAllDevices(int* count)
         {
             s_devices[deviceIter] = mallocZero(sizeof(SICODevice));
             s_devices[deviceIter]->deviceId = devices[j];
+        	s_devices[deviceIter]->context = createSingleContext(devices[j]);
             clGetDeviceInfo(devices[j], CL_DEVICE_TYPE, sizeof(cl_device_type), &s_devices[deviceIter]->deviceType, 0);
         }
 
@@ -347,7 +380,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
         {
             if (!(mem = clCreateBuffer(device->context, param->type | CL_MEM_USE_HOST_PTR, param->size, (void*)param->data, &error)))
             {
-                printf("SICO: CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
+                sico_log("CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
                 return SCIO_GeneralFail;
             }
         }
@@ -355,7 +388,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
         {
             if (!(mem = clCreateBuffer(device->context, CL_MEM_READ_WRITE, param->size, NULL, &error)))
             {
-                printf("SICO: GPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
+                sico_log("GPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
                 return SCIO_GeneralFail;
             }
 
@@ -376,7 +409,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 
         if ((error = clEnqueueWriteBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
-            printf("SICO: clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
+            sico_log("clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
         }
     }
@@ -394,7 +427,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 
         if (error != CL_SUCCESS)
         {
-            printf("Unable to clSetKernelArg (param %d), error %s\n", i, getErrorString(error));
+            sico_log("Unable to clSetKernelArg (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
         }
     }
@@ -423,7 +456,7 @@ static int writeMemoryParams(SICODevice* device, cl_command_queue queue, SICOPar
 
         if ((error = clEnqueueReadBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
-            printf("SICO: clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
+            sico_log("clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
         }
     }
@@ -448,6 +481,18 @@ int scInitialize()
 
 void scClose()
 {
+	for (int i = 0; i < s_deviceCount; ++i)
+	{
+		SICODevice* device = s_devices[i];
+
+		if (!device->context)
+			continue;
+
+		int error = clReleaseContext(device->context);
+
+		if (error != CL_SUCCESS)
+			sico_log("%s ", getErrorString(error));
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -493,7 +538,7 @@ struct SICODevice* scGetBestDevice()
 
     if (!(devices = scGetAllDevices(&count)))
     {
-        printf("SICO: Unable to find any OpenCL devices in the system\n");
+        sico_log("%s", "Unable to find any OpenCL devices in the system\n");
         return 0;
     }
 
@@ -551,7 +596,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(
     if (!(program = clCreateProgramWithSource(device->context, 1, &data, &fileSize, &error)))
     {
         free((void*)data);
-        printf("ERROR: clCreateProgramWithSource failed, error: %s\n", getErrorString(error));
+        sico_log("clCreateProgramWithSource failed, error: %s\n", getErrorString(error));
         return 0;
     }
 
@@ -569,7 +614,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(
 
         // TODO: Support writing the error log to a buffer
 
-        printf("SICO: unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
+        sico_log("unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
         free(errorBuffer);
 
         return 0;
@@ -577,7 +622,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(
 
     if (!(kern = clCreateKernel(program, kernelName, &error)))
     {
-        printf("SICO: Unable to create kernel for %s (%s), error %s\n", filename, kernelName, getErrorString(error));
+        sico_log("Unable to create kernel for %s (%s), error %s\n", filename, kernelName, getErrorString(error));
         return 0;
     }
 
@@ -614,7 +659,7 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
     if (!(program = clCreateProgramWithSource(device->context, 1, &data, &fileSize, &error)))
     {
         free((void*)data);
-        printf("SICO: clCreateProgramWithSource failed, error: %s\n", getErrorString(error));
+        sico_log("clCreateProgramWithSource failed, error: %s\n", getErrorString(error));
         return 0;
     }
 
@@ -632,7 +677,7 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
 
         // TODO: Support writing the error log to a buffer
 
-        printf("SICO: unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
+        sico_log("unable to build %s (error %s)\n\n%s\n", filename, getErrorString(error), errorBuffer);
         free(errorBuffer);
 
         return 0;
@@ -642,21 +687,101 @@ int scCompileFromFile(struct SICODevice* device, const char* filename, const cha
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
 
-SICOHandle scAlloc(struct SICODevice* device, size_t size)
+SICOHandle scAlloc(struct SICODevice* device, int flags, size_t size, void* hostPtr)
 {
+	cl_int errorCode;
 
+	cl_mem mem = clCreateBuffer(device->context, (cl_mem_flags)flags, size, hostPtr, &errorCode);
 
+	if (errorCode == CL_SUCCESS)
+		return (SICOHandle)mem;
+
+	mem = 0;
+
+	switch (errorCode)
+	{
+		case CL_INVALID_CONTEXT:
+		{
+			sico_log("%s : Invalid context\n", getErrorString(errorCode)); 
+			break;
+		}
+
+		case CL_INVALID_VALUE:
+		{
+			sico_log("%s : if values specified in flags are not valid as defined in the table above.\n", getErrorString(errorCode));
+			break;
+		}
+
+		case CL_INVALID_BUFFER_SIZE:
+		{
+			sico_log("%s : Size is 0\n", getErrorString(errorCode));
+			break;
+		}
+
+		case CL_INVALID_HOST_PTR:
+		{
+			sico_log("%s : if host_ptr is NULL and CL_MEM_USE_HOST_PTR or CL_MEM_COPY_HOST_PTR are set in flags or if host_ptr is not NULL but CL_MEM_COPY_HOST_PTR or CL_MEM_USE_HOST_PTR are not set in flags.\n", getErrorString(errorCode));
+			break;
+		}
+
+		case CL_MEM_OBJECT_ALLOCATION_FAILURE:
+		{
+			sico_log("%s : if there is a failure to allocate memory for buffer object\n", getErrorString(errorCode));
+			break;
+		}
+
+		case CL_OUT_OF_HOST_MEMORY:
+		{
+			sico_log("%s : if there is a failure to allocate resources required by the OpenCL implementation on the host\n", getErrorString(errorCode));
+			break;
+		}
+
+		default :
+		{
+			sico_log("%s : Unknown error\n", getErrorString(errorCode));
+			break;
+		}
+	}
+
+	return (SICOHandle)mem;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void scFree(SICOHandle handle)
+bool scFree(SICOHandle handle)
 {
+	int errorCode = clReleaseMemObject((cl_mem)handle);
 
+	if (errorCode == CL_SUCCESS)
+		return true;
+
+	switch (errorCode)
+	{
+		case CL_INVALID_MEM_OBJECT:
+		{
+			sico_log("%s : if memobj is a not a valid memory object.\n", getErrorString(errorCode));
+			break;
+		}
+
+		case CL_OUT_OF_RESOURCES: 
+		{
+			sico_log("%s : if there is a failure to allocate resources required by the OpenCL implementation on the device\n", getErrorString(errorCode));
+			break;
+		}
+
+		case CL_OUT_OF_HOST_MEMORY: 
+		{
+			sico_log("%s : if there is a failure to allocate resources required by the OpenCL implementation on the host.\n", getErrorString(errorCode));
+			break;
+		}
+	}
+
+	return false;
 }
 
+/*
 
 SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size)
 {
