@@ -16,6 +16,7 @@ extern "C" {
 
 struct SICODevice;
 typedef uintptr_t SICOHandle;
+typedef void* SICOCommanQueue;
 struct SICOKernel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,18 +136,31 @@ struct SICODevice* scGetBestDevice();
 
 int scCompileFromFile(struct SICODevice* device, const char* filename, const char* buildOpts);
 
+/*
+ * Allocate memory from a device. The memory is uninitialized so user is responsible for filling this memory
+ * \@param device Device to allocate the memory from 
+ * \@param flags cl_mem_flags (see OpenCL docs for a list of all values) 
+ * \@param size Number of bytes to allocate 
+ * \@param hostPtr (used with CL_MEM_USE_HOST_PTR, etc flags) 
+ * Return handle to memory, otherwise 0 
+ */
+
 SICOHandle scAlloc(struct SICODevice* device, int flags, size_t size, void* hostPtr);
+
+/*
+ * Frees memory alloced using scAlloc 
+ * \@param handle Handle to memory to free 
+ * Return true if memory freed correct, otherwise false 
+ */
 
 bool scFree(SICOHandle handle);
 
 
+
+SICOCommanQueue scCreateCommandQueue(struct SICODevice* device);
+
+
 /*
-
-   SICOHandle scAlloc(struct SICODevice* device, size_t size);
-
-
-   SICOHandle scFree(SICOHandle handle);
-
 
    SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size);
 
@@ -157,6 +171,8 @@ bool scFree(SICOHandle handle);
    SICOHandle scAsycCopyFromDevice(void* dest, const SICOHandle handle, int size);
 
  */
+
+
 
 
 SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);

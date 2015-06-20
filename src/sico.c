@@ -86,9 +86,9 @@ const char* getErrorString(cl_int errorCode)
         case CL_MEM_OBJECT_ALLOCATION_FAILURE:
             return "CL_MEM_OBJECT_ALLOCATION_FAILURE";
         case CL_OUT_OF_RESOURCES:
-            return "CL_OUT_OF_RESOURCES";
+        	return "CL_OUT_OF_RESOURCES : There is a failure to allocate resources required by the OpenCL implementation on the device.";
         case CL_OUT_OF_HOST_MEMORY:
-            return "CL_OUT_OF_HOST_MEMORY";
+			return "CL_OUT_OF_HOST_MEMORY : There is a failure to allocate resources required by the OpenCL implementation on the host.";
         case CL_PROFILING_INFO_NOT_AVAILABLE:
             return "CL_PROFILING_INFO_NOT_AVAILABLE";
         case CL_MEM_COPY_OVERLAP:
@@ -106,17 +106,17 @@ const char* getErrorString(cl_int errorCode)
         case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST:
             return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
         case CL_INVALID_VALUE:
-            return "CL_INVALID_VALUE";
+        	return "CL_INVALID_VALUE : Values specified in properties are not valid.";
         case CL_INVALID_DEVICE_TYPE:
             return "CL_INVALID_DEVICE_TYPE";
         case CL_INVALID_PLATFORM:
             return "CL_INVALID_PLATFORM";
         case CL_INVALID_DEVICE:
-            return "CL_INVALID_DEVICE";
+        	return "CL_INVALID_DEVICE : Device is not a valid device or is not associated with context.";
         case CL_INVALID_CONTEXT:
-            return "CL_INVALID_CONTEXT";
+			return "CL_INVALID_CONTEXT : Context is not a valid context.";
         case CL_INVALID_QUEUE_PROPERTIES:
-            return "CL_INVALID_QUEUE_PROPERTIES";
+        	return "CL_INVALID_QUEUE_PROPERTIES : Values specified in properties are valid but are not supported by the device.";
         case CL_INVALID_COMMAND_QUEUE:
             return "CL_INVALID_COMMAND_QUEUE";
         case CL_INVALID_HOST_PTR:
@@ -355,7 +355,7 @@ SICODevice** scGetAllDevices(int* count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_queue queue, SICOParam* params, uint32_t paramCount)
+static int setupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
 {
     uint8_t needsUpload[256] = { 0 };
     cl_int error;
@@ -407,7 +407,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
         if (needsUpload[i] == 0)
             continue;
 
-        if ((error = clEnqueueWriteBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
+        if ((error = clEnqueueWriteBuffer((cl_command_queue)queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
             sico_log("clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
@@ -437,7 +437,7 @@ static int setupParameters(SICODevice* device, SICOKernel* kernel, cl_command_qu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int writeMemoryParams(SICODevice* device, cl_command_queue queue, SICOParam* params, uint32_t paramCount)
+static int writeMemoryParams(SICODevice* device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
 {
     uint32_t i;
     cl_int error;
@@ -454,7 +454,7 @@ static int writeMemoryParams(SICODevice* device, cl_command_queue queue, SICOPar
         if (param->type == SICO_MEM_READ_ONLY || param->type == SICO_PARAMETER)
             continue;
 
-        if ((error = clEnqueueReadBuffer(queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
+        if ((error = clEnqueueReadBuffer((cl_command_queue)queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
             sico_log("clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
             return SCIO_GeneralFail;
@@ -781,6 +781,24 @@ bool scFree(SICOHandle handle)
 	return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SICOCommanQueue scCreateCommandQueue(struct SICODevice* device)
+{
+    cl_int error;
+    cl_command_queue queue;
+
+    queue = clCreateCommandQueue(device->context, device->deviceId, 0, &error);
+
+    if (error == CL_SUCCESS)
+    	return (SICOCommanQueue)queue;
+
+	sico_log("%s\n", getErrorString(error));
+
+	return 0;
+}
+
+
 /*
 
 SICOHandle scAllocSyncCopy(struct SICODevice* device, const void* memory, int size)
@@ -817,7 +835,7 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
 
     if (!(device = scGetBestDevice()))
     {
-        printf("SICO: Unable to find OpenCL device\n");
+        sico_log("%s ", "Unable to find OpenCL device\n");
         return SCIO_NoDevice;
     }
 
@@ -828,7 +846,7 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
 
     if (!(queue = clCreateCommandQueue(device->context, device->deviceId, 0, &error)))
     {
-        printf("SICO: Unable to create command queue, error: %s\n", getErrorString(error));
+        sico_log("SICO: Unable to create command queue, error: %s\n", getErrorString(error));
         return SCIO_GeneralFail;
     }
 
@@ -837,7 +855,7 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
 
     if ((error = clEnqueueNDRangeKernel(queue, kernel->kern, 1, 0, &elementCount, 0, 0, 0, 0)) != CL_SUCCESS)
     {
-        printf("SICO: clEnqueueNDRangeKernel failed, error %s\n", getErrorString(error));
+        sico_log("clEnqueueNDRangeKernel failed, error %s\n", getErrorString(error));
         return SCIO_GeneralFail;
     }
 
