@@ -14,10 +14,10 @@
 extern "C" {
 #endif
 
-struct SICODevice;
-typedef uintptr_t SICOHandle;
+typedef struct SICODevice* SICODevice;
+typedef struct SICOKernel* SICOKernel;
+typedef void* SICOHandle;
 typedef void* SICOCommanQueue;
-struct SICOKernel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,7 +86,7 @@ int scListDevices(char* output, size_t length);
  * Return device(s) pointer
  */
 
-struct SICODevice** scGetAllDevices(int* count);
+SICODevice* scGetAllDevices(int* count);
 
 /*
  * Get the number of CPU devices we have in the machine.
@@ -94,7 +94,7 @@ struct SICODevice** scGetAllDevices(int* count);
  * Return device(s) pointer
  */
 
-struct SICODevice** scGetCPUDevices(int* count);
+SICODevice* scGetCPUDevices(int* count);
 
 /*
  * Get the number of GPU devices we have in the machine.
@@ -102,7 +102,7 @@ struct SICODevice** scGetCPUDevices(int* count);
  * Return device(s) pointer
  */
 
-struct SICODevice** scGetGPUDevices(int* count);
+SICODevice* scGetGPUDevices(int* count);
 
 /*
  * Get the number of other OpenCL devices we have in the machine.
@@ -110,7 +110,7 @@ struct SICODevice** scGetGPUDevices(int* count);
  * Return device(s) pointer
  */
 
-struct SICODevice** scGetOtherDevices(int* count);
+SICODevice* scGetOtherDevices(int* count);
 
 /*
  * Get the "best" devices in the system, It will check number of compute units
@@ -120,7 +120,7 @@ struct SICODevice** scGetOtherDevices(int* count);
  * Return device(s) pointer
  */
 
-struct SICODevice** scGetBestDevices(int* count);
+SICODevice* scGetBestDevices(int* count);
 
 /*
  * Get the "best" device in the system, It will check number of compute units
@@ -128,7 +128,7 @@ struct SICODevice** scGetBestDevices(int* count);
  * Return device(s) pointer
  */
 
-struct SICODevice* scGetBestDevice();
+SICODevice scGetBestDevice();
 
 /*
  *
@@ -177,28 +177,28 @@ SICOCommanQueue scCreateCommandQueue(struct SICODevice* device);
  * TODO Document
  */
 
-int scSetupParameters(struct SICODevice* device, struct SICOKernel* kernel, SICOCommanQueue queue, SICOParam* params, int paramCount);
+int scSetupParameters(SICODevice device, SICOKernel kernel, SICOCommanQueue queue, SICOParam* params, int paramCount);
 
 /*
  * TODO Document
  *
  */
 
-SICOState scAddKernel1D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t count);
+SICOState scAddKernel1D(SICOCommanQueue queue, SICOKernel kernel, size_t count);
 
 /*
  * TODO Document
  *
  */
 
-SICOState scAddKernel2D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
+SICOState scAddKernel2D(SICOCommanQueue queue, SICOKernel kernel, size_t sizeX, size_t sizeY);
 
 /*
  * TODO Document
  *
  */
 
-SICOState scAddKernel(SICOCommanQueue* queue, struct SICOKernel* kernel, int workDim,
+SICOState scAddKernel(SICOCommanQueue queue, SICOKernel kernel, int workDim,
                       const size_t* globalWorkOffset, const size_t* globalWorkSize, const size_t* localWorkSize,
                       int eventListCount, void* waitEventList, void* event);
 
@@ -208,7 +208,7 @@ SICOState scAddKernel(SICOCommanQueue* queue, struct SICOKernel* kernel, int wor
  *
  */
 
-SICOState scFlushMemory(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
+SICOState scFlushMemory(SICOCommanQueue* queue, SICOKernel kernel, size_t sizeX, size_t sizeY);
 
 /*
  * TODO Document

@@ -45,21 +45,20 @@ static int s_deviceCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct SICODevice
+struct SICODevice
 {
     cl_device_id deviceId;
     cl_device_type deviceType;
     cl_context context;
-} SICODevice;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct SICOKernel
+struct SICOKernel
 {
     cl_program program;
     cl_kernel kern;
-
-} SICOKernel;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -292,7 +291,7 @@ cl_context createSingleContext(cl_device_id deviceId)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICODevice** scGetAllDevices(int* count)
+SICODevice* scGetAllDevices(int* count)
 {
     cl_uint i, j, deviceIter = 0;
     cl_uint platformCount;
@@ -355,7 +354,7 @@ SICODevice** scGetAllDevices(int* count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue queue, SICOParam* params, int paramCount)
+int scSetupParameters(SICODevice device, SICOKernel kernel, SICOCommanQueue queue, SICOParam* params, int paramCount)
 {
     uint8_t needsUpload[256] = { 0 };
     cl_int error;
@@ -445,7 +444,7 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICOState scWriteMemoryParams(SICODevice* device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
+SICOState scWriteMemoryParams(SICODevice device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
 {
     uint32_t i;
     cl_int error;
@@ -491,7 +490,7 @@ void scClose()
 {
     for (int i = 0; i < s_deviceCount; ++i)
     {
-        SICODevice* device = s_devices[i];
+        SICODevice device = s_devices[i];
 
         if (!device->context)
             continue;
@@ -508,7 +507,7 @@ void scClose()
 int scListDevices(char* output, size_t size)
 {
     int i, count;
-    SICODevice** devices;
+    SICODevice* devices;
 
     if (s_platformId == 0)
         return 0;
@@ -540,7 +539,7 @@ int scListDevices(char* output, size_t size)
 struct SICODevice* scGetBestDevice()
 {
     int i, count;
-    SICODevice** devices;
+    SICODevice* devices;
 
     // this algorithm can be quite improved. Right now it will just pick the first GPU
 
@@ -582,7 +581,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(struct SICODevice* device, cons
     cl_int error;
 
     cl_program program;
-    SICOKernel* kernel;
+    SICOKernel kernel;
 
     (void)buildOpts;
 
@@ -741,7 +740,7 @@ SICOCommanQueue scCreateCommandQueue(struct SICODevice* device)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
+SICOState scAddKernel(SICOCommanQueue queue, SICOKernel kernel, int workDim,
                       const size_t* globalWorkOffset, const size_t* globalWorkSize, const size_t* localWorkSize,
                       int eventListCount, void* waitEventList, void* event)
 {
@@ -811,14 +810,14 @@ SICOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICOState scAddKernel1D(SICOCommanQueue* queue, SICOKernel* kernel, size_t count)
+SICOState scAddKernel1D(SICOCommanQueue queue, SICOKernel kernel, size_t count)
 {
     return scAddKernel(queue, kernel, 1, 0, &count, 0, 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICOState scAddKernel2D(SICOCommanQueue* queue, SICOKernel* kernel, size_t sizeX, size_t sizeY)
+SICOState scAddKernel2D(SICOCommanQueue queue, SICOKernel kernel, size_t sizeX, size_t sizeY)
 {
     size_t sizes[] = { sizeX, sizeY };
 
@@ -887,8 +886,8 @@ SICOState scDestroyCommandQueue(SICOCommanQueue queue)
 
 SICOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes)
 {
-    SICODevice* device;
-    SICOKernel* kernel;
+    SICODevice device;
+    SICOKernel kernel;
     SICOCommanQueue queue;
 
     SICOParam params[] =
