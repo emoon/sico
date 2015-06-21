@@ -42,9 +42,8 @@ int main()
         };
 
         scAddKernel2D(queue, device, kernel, WIDTH, HEIGHT, params, SICO_SIZEOF_ARRAY(params));
-
         scCommandQueueFinish(queue);
-        scFreeParams(params, SICO_SIZEOF_ARRAY(params));
+        scFreeParams(params, SICO_SIZEOF_ARRAY(params)); // TODO: Get rid of this call.. a bit tricky though (only needed with autoallocate)
 
         int state = mfb_update(s_buffer);
 
