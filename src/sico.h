@@ -21,23 +21,23 @@ struct SICOKernel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum SCIOState
+typedef enum SICOState
 {
-    SCIO_GeneralFail,
-    SCIO_Ok,
-    SCIO_NoDevice,
-    SCIO_UnableToBuildKernel,
-    SCIO_UnableToExecuteKernel,
-} SCIOState;
+    SICO_GeneralFail,
+    SICO_Ok,
+    SICO_NoDevice,
+    SICO_UnableToBuildKernel,
+    SICO_UnableToExecuteKernel,
+} SICOState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum SCIOMemoryPolicy
+typedef enum SICOMemoryPolicy
 {
     SICO_AutoAllocate,
     SICO_UserSuppliedData,
 
-} SCIOMemoryPolicy;
+} SICOMemoryPolicy;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ typedef struct SICOParam
 {
     uintptr_t data;
     unsigned int type;   // memory type (use defines above)
-    SCIOMemoryPolicy policy;
+    SICOMemoryPolicy policy;
     size_t size;
     void* privData; // private data
 } SICOParam;
@@ -184,21 +184,21 @@ int scSetupParameters(struct SICODevice* device, struct SICOKernel* kernel, SICO
  *
  */
 
-SCIOState scAddKernel1D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t count);
+SICOState scAddKernel1D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t count);
 
 /*
  * TODO Document
  *
  */
 
-SCIOState scAddKernel2D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
+SICOState scAddKernel2D(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
 
 /*
  * TODO Document
  *
  */
 
-SCIOState scAddKernel(SICOCommanQueue* queue, struct SICOKernel* kernel, int workDim,
+SICOState scAddKernel(SICOCommanQueue* queue, struct SICOKernel* kernel, int workDim,
                       const size_t* globalWorkOffset, const size_t* globalWorkSize, const size_t* localWorkSize,
                       int eventListCount, void* waitEventList, void* event);
 
@@ -208,7 +208,7 @@ SCIOState scAddKernel(SICOCommanQueue* queue, struct SICOKernel* kernel, int wor
  *
  */
 
-SCIOState scFlushMemory(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
+SICOState scFlushMemory(SICOCommanQueue* queue, struct SICOKernel* kernel, size_t sizeX, size_t sizeY);
 
 /*
  * TODO Document
@@ -221,20 +221,20 @@ void scFreeParams(SICOParam* paramaters, int count);
  * TODO Document
  */
 
-SCIOState scWriteMemoryParams(struct SICODevice* device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount);
+SICOState scWriteMemoryParams(struct SICODevice* device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount);
 
 /*
  * TODO Document
  */
 
 
-SCIOState scCommandQueueFlush(SICOCommanQueue queue);
+SICOState scCommandQueueFlush(SICOCommanQueue queue);
 
 /*
  * scDestroyCommandQueue
  */
 
-SCIOState scDestroyCommandQueue(SICOCommanQueue queue);
+SICOState scDestroyCommandQueue(SICOCommanQueue queue);
 
 
 /*
@@ -247,7 +247,7 @@ struct SICOKernel* scCompileKernelFromSourceFile(struct SICODevice* device, cons
  * TODO Document
  */
 
-SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
+SICOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes);
 
 #ifdef __cplusplus
 }

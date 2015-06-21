@@ -362,13 +362,13 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
     cl_mem mem;
 
     if (!device)
-        return SCIO_NoDevice;
+        return SICO_NoDevice;
 
     if (!kernel || !queue || !params || params == 0)
-        return SCIO_GeneralFail;
+        return SICO_GeneralFail;
 
     if (!device->context)
-        return SCIO_GeneralFail;
+        return SICO_GeneralFail;
 
     assert(paramCount < (int)sizeof(needsUpload));
 
@@ -389,7 +389,7 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
             if (!(mem = clCreateBuffer(device->context, param->type | CL_MEM_USE_HOST_PTR, param->size, (void*)param->data, &error)))
             {
                 sico_log("CPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
-                return SCIO_GeneralFail;
+                return SICO_GeneralFail;
             }
         }
         else
@@ -397,7 +397,7 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
             if (!(mem = clCreateBuffer(device->context, CL_MEM_READ_WRITE, param->size, NULL, &error)))
             {
                 sico_log("GPU clCreateBuffer failed (param %d), error %s\n", i, getErrorString(error));
-                return SCIO_GeneralFail;
+                return SICO_GeneralFail;
             }
 
             needsUpload[i] = 1;
@@ -418,7 +418,7 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
         if ((error = clEnqueueWriteBuffer((cl_command_queue)queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
             sico_log("clEnqueueWriteBuffer failed (param %d), error %s\n", i, getErrorString(error));
-            return SCIO_GeneralFail;
+            return SICO_GeneralFail;
         }
     }
 
@@ -436,16 +436,16 @@ int scSetupParameters(SICODevice* device, SICOKernel* kernel, SICOCommanQueue qu
         if (error != CL_SUCCESS)
         {
             sico_log("Unable to clSetKernelArg (param %d), error %s\n", i, getErrorString(error));
-            return SCIO_GeneralFail;
+            return SICO_GeneralFail;
         }
     }
 
-    return SCIO_Ok;
+    return SICO_Ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scWriteMemoryParams(SICODevice* device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
+SICOState scWriteMemoryParams(SICODevice* device, SICOCommanQueue queue, SICOParam* params, uint32_t paramCount)
 {
     uint32_t i;
     cl_int error;
@@ -453,7 +453,7 @@ SCIOState scWriteMemoryParams(SICODevice* device, SICOCommanQueue queue, SICOPar
     // If the device is CPU we have nothing that needs to be copied back
 
     if (device->deviceType == CL_DEVICE_TYPE_CPU)
-        return SCIO_Ok;
+        return SICO_Ok;
 
     for (i = 0; i < paramCount; ++i)
     {
@@ -465,11 +465,11 @@ SCIOState scWriteMemoryParams(SICODevice* device, SICOCommanQueue queue, SICOPar
         if ((error = clEnqueueReadBuffer((cl_command_queue)queue, (cl_mem)param->privData, CL_TRUE, 0, param->size, (void*)param->data, 0, NULL, NULL)) != CL_SUCCESS)
         {
             sico_log("clEnqueueReadBuffer failed (param %d), error %s\n", i, getErrorString(error));
-            return SCIO_GeneralFail;
+            return SICO_GeneralFail;
         }
     }
 
-    return SCIO_Ok;
+    return SICO_Ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -741,7 +741,7 @@ SICOCommanQueue scCreateCommandQueue(struct SICODevice* device)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
+SICOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
                       const size_t* globalWorkOffset, const size_t* globalWorkSize, const size_t* localWorkSize,
                       int eventListCount, void* waitEventList, void* event)
 {
@@ -750,7 +750,7 @@ SCIOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
                                           (cl_uint)eventListCount, waitEventList, event);
 
     if (error == CL_SUCCESS)
-        return SCIO_Ok;
+        return SICO_Ok;
 
     switch (error)
     {
@@ -806,19 +806,19 @@ SCIOState scAddKernel(SICOCommanQueue* queue, SICOKernel* kernel, int workDim,
         }
     }
 
-    return SCIO_GeneralFail;
+    return SICO_GeneralFail;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scAddKernel1D(SICOCommanQueue* queue, SICOKernel* kernel, size_t count)
+SICOState scAddKernel1D(SICOCommanQueue* queue, SICOKernel* kernel, size_t count)
 {
     return scAddKernel(queue, kernel, 1, 0, &count, 0, 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scAddKernel2D(SICOCommanQueue* queue, SICOKernel* kernel, size_t sizeX, size_t sizeY)
+SICOState scAddKernel2D(SICOCommanQueue* queue, SICOKernel* kernel, size_t sizeX, size_t sizeY)
 {
     size_t sizes[] = { sizeX, sizeY };
 
@@ -857,35 +857,35 @@ void scFreeParams(SICOParam* params, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scCommandQueueFlush(SICOCommanQueue queue)
+SICOState scCommandQueueFlush(SICOCommanQueue queue)
 {
     cl_int errorCode = clFinish(queue);
 
     if (errorCode == CL_SUCCESS)
-        return SCIO_Ok;
+        return SICO_Ok;
 
     sico_log("%s ", getErrorString(errorCode));
 
-    return SCIO_GeneralFail;
+    return SICO_GeneralFail;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scDestroyCommandQueue(SICOCommanQueue queue)
+SICOState scDestroyCommandQueue(SICOCommanQueue queue)
 {
     cl_int errorCode = clReleaseCommandQueue(queue);
 
     if (errorCode == CL_SUCCESS)
-        return SCIO_Ok;
+        return SICO_Ok;
 
     sico_log("%s ", getErrorString(errorCode));
 
-    return SCIO_GeneralFail;
+    return SICO_GeneralFail;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes)
+SICOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, const char* filename, size_t elementCount, size_t sizeInBytes)
 {
     SICODevice* device;
     SICOKernel* kernel;
@@ -903,23 +903,23 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
     if (!(device = scGetBestDevice()))
     {
         sico_log("%s ", "Unable to find OpenCL device\n");
-        return SCIO_NoDevice;
+        return SICO_NoDevice;
     }
 
     if (!(kernel = scCompileKernelFromSourceFile(device, filename, "kern", "")))
-        return SCIO_UnableToBuildKernel;
+        return SICO_UnableToBuildKernel;
 
     if (!(queue = scCreateCommandQueue(device)))
-        return SCIO_GeneralFail;
+        return SICO_GeneralFail;
 
-    if ((scSetupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params))) != SCIO_Ok)
-        return SCIO_GeneralFail;
+    if ((scSetupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params))) != SICO_Ok)
+        return SICO_GeneralFail;
 
-    if ((scAddKernel1D(queue, kernel, elementCount)) != SCIO_Ok)
-        return SCIO_GeneralFail;
+    if ((scAddKernel1D(queue, kernel, elementCount)) != SICO_Ok)
+        return SICO_GeneralFail;
 
-    if ((scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params))) != SCIO_Ok)
-        return SCIO_GeneralFail;
+    if ((scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params))) != SICO_Ok)
+        return SICO_GeneralFail;
 
     scCommandQueueFlush(queue);
 
@@ -927,5 +927,5 @@ SCIOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
 
     scDestroyCommandQueue(queue);
 
-    return SCIO_Ok;
+    return SICO_Ok;
 }
