@@ -817,9 +817,12 @@ SICOState scAddKernel1D(SICOCommanQueue queue, SICOKernel kernel, size_t count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICOState scAddKernel2D(SICOCommanQueue queue, SICOKernel kernel, size_t sizeX, size_t sizeY)
+SICOState scAddKernel2D(SICOCommanQueue queue, SICODevice device, SICOKernel kernel, size_t sizeX, size_t sizeY, SICOParam* params, int paramCount)
 {
     size_t sizes[] = { sizeX, sizeY };
+
+	if (scSetupParameters(device, kernel, queue, params, paramCount) != SICO_Ok)
+		return SICO_GeneralFail;
 
     return scAddKernel(queue, kernel, 2, 0, (size_t*)&sizes, 0, 0, 0, 0);
 }

@@ -41,8 +41,8 @@ int main()
             { (uintptr_t)&time, SICO_PARAMETER, 0, sizeof(float), 0 },
         };
 
-        scSetupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params));
-        scAddKernel2D(queue, kernel, WIDTH, HEIGHT);
+        //scSetupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params));
+        scAddKernel2D(queue, device, kernel, WIDTH, HEIGHT, params, SICO_SIZEOF_ARRAY(params));
         scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params));
 
         scCommandQueueFlush(queue);
