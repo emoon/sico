@@ -11,8 +11,8 @@ static unsigned int s_buffer[WIDTH * HEIGHT];
 
 int main()
 {
-    struct SICODevice* device;
-    struct SICOKernel* kernel;
+    SICODevice device;
+    SICOKernel kernel;
     SICOCommanQueue queue;
 
     scInitialize();
@@ -41,11 +41,9 @@ int main()
             { (uintptr_t)&time, SICO_PARAMETER, 0, sizeof(float), 0 },
         };
 
-        //scSetupParameters(device, kernel, queue, params, SICO_SIZEOF_ARRAY(params));
         scAddKernel2D(queue, device, kernel, WIDTH, HEIGHT, params, SICO_SIZEOF_ARRAY(params));
-        scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params));
 
-        scCommandQueueFlush(queue);
+        scCommandQueueFinish(queue);
         scFreeParams(params, SICO_SIZEOF_ARRAY(params));
 
         int state = mfb_update(s_buffer);

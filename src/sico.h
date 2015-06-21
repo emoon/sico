@@ -16,8 +16,9 @@ extern "C" {
 
 typedef struct SICODevice* SICODevice;
 typedef struct SICOKernel* SICOKernel;
-typedef void* SICOHandle;
+//typedef struct SICOQueue* SICOCommanQueue;
 typedef void* SICOCommanQueue;
+typedef void* SICOHandle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +36,7 @@ typedef enum SICOState
 typedef enum SICOMemoryPolicy
 {
     SICO_AutoAllocate,
+    SICO_AutoWriteBack,
     SICO_UserSuppliedData,
 
 } SICOMemoryPolicy;
@@ -228,7 +230,7 @@ SICOState scWriteMemoryParams(struct SICODevice* device, SICOCommanQueue queue, 
  */
 
 
-SICOState scCommandQueueFlush(SICOCommanQueue queue);
+SICOState scCommandQueueFinish(SICOCommanQueue queue);
 
 /*
  * scDestroyCommandQueue

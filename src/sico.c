@@ -62,6 +62,16 @@ struct SICOKernel
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+struct SICOCommanQueue
+{
+	int dumm
+
+};
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void* mallocZero(size_t size)
 {
     void* t = malloc(size);
@@ -824,7 +834,10 @@ SICOState scAddKernel2D(SICOCommanQueue queue, SICODevice device, SICOKernel ker
 	if (scSetupParameters(device, kernel, queue, params, paramCount) != SICO_Ok)
 		return SICO_GeneralFail;
 
-    return scAddKernel(queue, kernel, 2, 0, (size_t*)&sizes, 0, 0, 0, 0);
+    if (scAddKernel(queue, kernel, 2, 0, (size_t*)&sizes, 0, 0, 0, 0) != SICO_Ok)
+    	return SICO_GeneralFail;
+
+    return scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -859,7 +872,7 @@ void scFreeParams(SICOParam* params, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SICOState scCommandQueueFlush(SICOCommanQueue queue)
+SICOState scCommandQueueFinish(SICOCommanQueue queue)
 {
     cl_int errorCode = clFinish(queue);
 
@@ -923,7 +936,7 @@ SICOState scRunKernel1DArraySimple(void* dest, void* sourceA, void* sourceB, con
     if ((scWriteMemoryParams(device, queue, params, SICO_SIZEOF_ARRAY(params))) != SICO_Ok)
         return SICO_GeneralFail;
 
-    scCommandQueueFlush(queue);
+    scCommandQueueFinish(queue);
 
     scFreeParams(params, SICO_SIZEOF_ARRAY(params));
 
